@@ -25,6 +25,19 @@ class User extends Authenticatable
         'role',
     ];
 
+    // Jika user adalah pemungut → daftar plotting masyarakat
+    public function masyarakatPlotting()
+    {
+        return $this->hasMany(\App\Models\Plotting::class, 'pemungut_id');
+    }
+
+    // Jika user adalah masyarakat → daftar tagihan
+    public function tagihan()
+    {
+        return $this->hasMany(\App\Models\Tagihan::class, 'masyarakat_id');
+    }
+
+
     /**
      * The attributes that should be hidden for serialization.
      *

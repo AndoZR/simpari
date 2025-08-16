@@ -17,7 +17,7 @@ return new class extends Migration
             $table->char('nik',16)->unique();
             // $table->string('email')->unique();
             $table->string('password');
-            $table->enum('role', ['1', '2', '3', '4']);
+            $table->enum('role', ['masyarakat', 'pemungut', 'admin_kecamatan', 'admin_desa']);
             $table->timestamps();
         });
 
