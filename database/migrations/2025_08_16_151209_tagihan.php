@@ -13,7 +13,7 @@ return new class extends Migration
 
             // FK ke users.id (role masyarakat)
             $table->unsignedBigInteger('masyarakat_id');
-
+            $table->string('nop',30)->unique()->nullable();
             $table->decimal('jumlah', 15, 2); // Total tagihan
             $table->decimal('sisa_tagihan', 15, 2); // Sisa setelah dicicil
             $table->enum('status', ['belum', 'cicilan', 'didesa', 'dipemungut', 'lunas'])->default('belum');

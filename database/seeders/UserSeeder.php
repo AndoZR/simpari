@@ -62,7 +62,6 @@ class UserSeeder extends Seeder
 
             Masyarakat::create([
                 'nama' => 'Masyarakat ' . ($index + 1),
-                'nop' => str_pad($index + 1, 12, '0', STR_PAD_LEFT), // contoh unik
                 'user_id' => $user->id,
                 'telepon' => '0821' . str_pad($index + 1, 7, '0', STR_PAD_LEFT),
                 'alamat' => 'Jl. Masyarakat No. ' . ($index + 1) . ', Desa Sukamaju',

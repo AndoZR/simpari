@@ -37,6 +37,7 @@ class PemungutController extends Controller
 
                     return [
                         'id'              => $tagih->id,
+                        'nop'          => $tagih->nop,
                         'jumlah'          => $tagih->jumlah,
                         'status'          => $tagih->status,
                         'sisa_tagihan'    => $tagih->sisa_tagihan,
@@ -57,7 +58,6 @@ class PemungutController extends Controller
                 return [
                     'masyarakat_id' => $m->id,
                     'nama'          => $m->nama,
-                    'nop'          => $m->nop,
                     'alamat'        => $m->alamat,
                     'status_lunas'  => intval($m->status_lunas),
                     'tagihan'       => $tagihanList

@@ -27,6 +27,22 @@ class tagihanSeeder extends Seeder
                 $jumlah = rand(200000, 1000000); // nominal random
                 $status = collect(['lunas', 'cicilan', 'belum'])->random();
 
+                // Generate NOP asli (18 digit)
+                $prov = str_pad(rand(1, 34), 2, '0', STR_PAD_LEFT);
+                $kab = str_pad(rand(1, 99), 2, '0', STR_PAD_LEFT);
+                $kecKel = str_pad(rand(1, 999999), 6, '0', STR_PAD_LEFT);
+                $urut = str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+                $jenis = rand(0, 9);
+
+                $nop = $prov.$kab.$kecKel.$urut.$jenis; // 18 digit full
+                $nopFormatted = substr($nop,0,2).".".
+                                substr($nop,2,2).".".
+                                substr($nop,4,3).".".
+                                substr($nop,7,3).".".
+                                substr($nop,10,3)."-".
+                                substr($nop,13,4).".".
+                                substr($nop,17,1);
+
                 $tagihan = Tagihan::create([
                     'masyarakat_id' => $masyarakat->id,
                     'jumlah' => $jumlah,
@@ -35,6 +51,7 @@ class tagihanSeeder extends Seeder
                     'keterangan' => 'Tagihan pajak ' . ($i + 1),
                     'tanggal_tagihan' => Carbon::now()->subDays(rand(0, 60)),
                     'tanggal_lunas' => $status == 'lunas' ? Carbon::now()->subDays(rand(1, 30)) : null,
+                    'nop' => $nopFormatted, // simpan versi dengan titik & strip
                 ]);
 
                 // Jika status cicilan → buat cicilan random
@@ -62,5 +79,6 @@ class tagihanSeeder extends Seeder
                 }
             }
         }
+
     }
 }

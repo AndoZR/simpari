@@ -10,6 +10,7 @@ class Tagihan extends Model
     protected $table = 'tagihan';
 
     protected $fillable = [
+        'nop',
         'jumlah',
         'status',
         'sisa_tagihan',
