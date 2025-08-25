@@ -10,9 +10,10 @@ return new class extends Migration
     {
         Schema::create('pemungut', function (Blueprint $table) {
             $table->id();
+            $table->string('nama');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('wilayah_tugas');
             $table->string('telepon')->nullable();
+            $table->string('alamat')->nullable();
             $table->timestamps();
         });
     }

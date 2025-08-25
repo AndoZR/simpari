@@ -3,7 +3,9 @@
 namespace Database\Seeders;
 
 use Carbon\Carbon;
+use App\Models\Cicilan;
 use App\Models\Tagihan;
+use App\Models\Masyarakat;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -15,62 +17,50 @@ class tagihanSeeder extends Seeder
      */
     public function run(): void
     {
-        {
-            // Cari user masyarakat
-            // $user = User::where('nik', '3509200904020002')
-            //             ->where('role', 'masyarakat')
-            //             ->first();
+        $masyarakats = Masyarakat::all();
 
-            Tagihan::create([
-                'masyarakat_id' => 1,
-                'jumlah' => 500000, // contoh Rp500.000
-                'status' => 'lunas', // sesuai enum baru
-                'sisa_tagihan' => 500000, // awalnya sisa tagihan sama dengan jumlah
-                'keterangan' => 'Tagihan pajak pertama',
-                'tanggal_tagihan' => now(),
-                'tanggal_lunas' => null,
-            ]);
+        foreach ($masyarakats as $masyarakat) {
+            // Random jumlah tagihan per masyarakat (1–3)
+            $jumlahTagihan = rand(1, 3);
 
-            Tagihan::create([
-                'masyarakat_id' => 1,
-                'jumlah' => 500000, // contoh Rp500.000
-                'status' => 'cicilan', // sesuai enum baru
-                'sisa_tagihan' => 300000, // awalnya sisa tagihan sama dengan jumlah
-                'keterangan' => 'Tagihan pajak pertama',
-                'tanggal_tagihan' => now(),
-                'tanggal_lunas' => null,
-            ]);
+            for ($i = 0; $i < $jumlahTagihan; $i++) {
+                $jumlah = rand(200000, 1000000); // nominal random
+                $status = collect(['lunas', 'cicilan', 'belum'])->random();
 
-            // Contoh: bikin 2 cicilan per tagihan
-            $cicilan1 = [
-                'tagihan_id' => 2,
-                'jumlah_bayar' => round(100000, 2),
-                'tanggal_bayar' => Carbon::now()->subDays(10),
-                'keterangan' => 'Cicilan pertama',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
+                $tagihan = Tagihan::create([
+                    'masyarakat_id' => $masyarakat->id,
+                    'jumlah' => $jumlah,
+                    'status' => $status,
+                    'sisa_tagihan' => $status == 'lunas' ? 0 : $jumlah,
+                    'keterangan' => 'Tagihan pajak ' . ($i + 1),
+                    'tanggal_tagihan' => Carbon::now()->subDays(rand(0, 60)),
+                    'tanggal_lunas' => $status == 'lunas' ? Carbon::now()->subDays(rand(1, 30)) : null,
+                ]);
 
-            $cicilan2 = [
-                'tagihan_id' => 2,
-                'jumlah_bayar' => round(100000 / 2, 2),
-                'tanggal_bayar' => Carbon::now(),
-                'keterangan' => 'Cicilan kedua',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
+                // Jika status cicilan → buat cicilan random
+                if ($status == 'cicilan') {
+                    $totalBayar = 0;
+                    $jumlahCicilan = rand(2, 4); // random 2–4 cicilan
+                    for ($j = 1; $j <= $jumlahCicilan; $j++) {
+                        $bayar = rand(50000, $jumlah / $jumlahCicilan);
+                        $totalBayar += $bayar;
 
-            DB::table('cicilan_tagihan')->insert([$cicilan1, $cicilan2]);
+                        Cicilan::create([
+                            'tagihan_id' => $tagihan->id,
+                            'jumlah_bayar' => $bayar,
+                            'tanggal_bayar' => Carbon::now()->subDays(rand(0, 30)),
+                            'keterangan' => 'Cicilan ke-' . $j,
+                        ]);
+                    }
 
-            Tagihan::create([
-                'masyarakat_id' => 2,
-                'jumlah' => 100000, // contoh Rp500.000
-                'status' => 'belum', // sesuai enum baru
-                'sisa_tagihan' => 100000, // awalnya sisa tagihan sama dengan jumlah
-                'keterangan' => 'Tagihan pajak pertama',
-                'tanggal_tagihan' => now(),
-                'tanggal_lunas' => null,
-            ]);
+                    // update sisa tagihan
+                    $tagihan->update([
+                        'sisa_tagihan' => max($jumlah - $totalBayar, 0),
+                        'status' => $totalBayar >= $jumlah ? 'lunas' : 'cicilan',
+                        'tanggal_lunas' => $totalBayar >= $jumlah ? Carbon::now() : null,
+                    ]);
+                }
+            }
         }
     }
 }

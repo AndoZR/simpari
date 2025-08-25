@@ -19,24 +19,20 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
         'nik',
         'password',
         'role',
     ];
 
-    // Jika user adalah pemungut → daftar plotting masyarakat
-    public function masyarakatPlotting()
+    public function pemungutData()
     {
-        return $this->hasMany(\App\Models\Plotting::class, 'pemungut_id');
+        return $this->hasOne(Pemungut::class);
     }
 
-    // Jika user adalah masyarakat → daftar tagihan
-    public function tagihan()
+    public function masyarakatData()
     {
-        return $this->hasMany(\App\Models\Tagihan::class, 'masyarakat_id');
+        return $this->hasOne(Masyarakat::class);
     }
-
 
     /**
      * The attributes that should be hidden for serialization.

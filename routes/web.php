@@ -9,8 +9,6 @@ Route::post('/register', [AuthController::class, 'registerWeb'])->name('auth.reg
 Route::post('/login', [AuthController::class, 'loginWeb'])->name('auth.login');
 Route::get('/logout', [AuthController::class, 'logoutWeb'])->name('auth.logout');
 
-Route::get('/test', [AuthController::class, 'test'])->name('test');
-
 Route::middleware(['auth'])->group(function () {
     Route::get('/', function () {
         return;

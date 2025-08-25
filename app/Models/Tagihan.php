@@ -18,6 +18,11 @@ class Tagihan extends Model
         'tanggal_lunas',
     ];
 
+    public function masyarakat()
+    {
+        return $this->belongsTo(Masyarakat::class, 'masyarakat_id');
+    }
+
     public function cicilan()
     {
         return $this->hasMany(Cicilan::class, 'tagihan_id');

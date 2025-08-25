@@ -67,6 +67,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         try {
+            // 🔹 Validasi input
             $validated = $request->validate([
                 'nik' => 'required|string',
                 'password' => 'required|string',
@@ -74,34 +75,39 @@ class AuthController extends Controller
                 'nik.required' => 'NIK wajib diisi.',
                 'password.required' => 'Password wajib diisi.',
             ]);
-            // 🔹 Ambil credentials
-            $credentials = $request->only('nik', 'password');
+
+            // 🔹 Ambil credentials dari input yang tervalidasi
+            $credentials = [
+                'nik' => $validated['nik'],
+                'password' => $validated['password']
+            ];
 
             // 🔹 Cek login
             if (Auth::attempt($credentials)) {
                 $user = Auth::user();
                 $token = $user->createToken('auth_token')->plainTextToken;
+
                 return response()->json([
                     'success' => true,
-                    'message' => 'Login success',
+                    'message' => 'Login berhasil',
                     'user' => $user,
                     'token' => $token,
                 ], 200);
             }
+
             // 🔹 Jika gagal login
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat login',
-                'error' => 'Invalid credentials',
+                'message' => 'NIK atau password salah',
             ], 401);
+
         } catch (Exception $e) {
             // 🔹 Catat error ke log
             Log::error('Login error: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat login',
-                'error' => $e->getMessage(), // bisa dihapus kalau tidak mau expose error
+                'message' => 'Terjadi kesalahan server saat login',
             ], 500);
         }
     }
@@ -139,14 +145,44 @@ class AuthController extends Controller
     // Login
     public function loginWeb(Request $request)
     {
-        $credentials = $request->only('nik', 'password');
+        try {
+            // 🔹 Validasi input
+            $validated = $request->validate([
+                'nik' => 'required|string',
+                'password' => 'required|string',
+            ], [
+                'nik.required' => 'NIK wajib diisi.',
+                'password.required' => 'Password wajib diisi.',
+            ]);
 
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-            return view('Dashborad.Main')->with(['message' => 'Login success', 'user' => $user]);
+            // 🔹 Ambil credentials dari input yang tervalidasi
+            $credentials = [
+                'nik' => $validated['nik'],
+                'password' => $validated['password']
+            ];
+
+            // 🔹 Cek login
+            if (Auth::attempt($credentials)) {
+                $user = Auth::user();
+
+                return view('Dashboard.Layout.Main')->with(['message' => 'Login success', 'user' => $user]);
+            }
+
+            // 🔹 Jika gagal login
+            return back()->withErrors([
+                'nik' => 'NIK atau password salah.',
+            ]);
+
+        } catch (Exception $e) {
+            // 🔹 Catat error ke log
+            Log::error('Login error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan server saat login',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        return response()->json(['error' => 'Invalid credentials'], 401);
     }
 
     // Logout
@@ -154,12 +190,5 @@ class AuthController extends Controller
     {
         Auth::logout();
         return view('Auth.Login');
-    }
-
-    public function test()
-    {
-        $var = ["1", "2", "3"];
-        $var[1] = null; 
-        dd($var);
     }
 }

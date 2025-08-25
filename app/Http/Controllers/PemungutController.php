@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cicilan;
+use App\Models\Masyarakat;
+use App\Models\Pemungut;
 use App\Models\User;
 use App\Models\Tagihan;
 use Illuminate\Http\Request;
@@ -18,19 +20,21 @@ class PemungutController extends Controller
 
     public function showTagihan()
     {
-        $user = Auth::user();
-        // Ambil user pemungut
-        $pemungut = User::with([
-            'masyarakatPlotting.masyarakat.tagihan'
-        ])->findOrFail($user->id);
+        try {
+            $user = Auth::user();
 
-        // Ambil daftar masyarakat yg di-plotting
-        $masyarakatList = $pemungut->masyarakatPlotting->map(function ($plot) {
-            return [
-                'masyarakat_id' => $plot->masyarakat->id,
-                'nama'          => $plot->masyarakat->name,
-                'alamat'        => $plot->masyarakat->alamat ?? null,
-                'tagihan'       => $plot->masyarakat->tagihan->map(function ($tagih) {
+            // Ambil pemungut berdasarkan user login + relasi lengkap
+            $pemungut = Pemungut::with([
+                'user',
+                'masyarakat.tagihan.cicilan'
+            ])->firstOrFail();
+
+            $masyarakatList = $pemungut->masyarakat->map(function ($m) use (&$target_nominal, &$totalSisa, &$totalCapaian) {
+                $tagihanList = $m->tagihan->map(function ($tagih) use (&$target_nominal, &$totalSisa, &$totalCapaian) {
+                    $target_nominal += $tagih->jumlah ?? 0;
+                    $totalSisa    += $tagih->sisa_tagihan ?? 0;
+                    $totalCapaian += ($tagih->jumlah ?? 0) - ($tagih->sisa_tagihan ?? 0);
+
                     return [
                         'id'              => $tagih->id,
                         'jumlah'          => $tagih->jumlah,
@@ -39,7 +43,6 @@ class PemungutController extends Controller
                         'keterangan'      => $tagih->keterangan,
                         'tanggal_tagihan' => $tagih->tanggal_tagihan,
                         'tanggal_lunas'   => $tagih->tanggal_lunas,
-                        // tambahkan detail cicilan
                         'cicilan'         => $tagih->cicilan->map(function ($c) {
                             return [
                                 'id'           => $c->id,
@@ -49,18 +52,51 @@ class PemungutController extends Controller
                             ];
                         })
                     ];
-                })
-            ];
-        });
+                });
 
+                return [
+                    'masyarakat_id' => $m->id,
+                    'nama'          => $m->nama,
+                    'nop'          => $m->nop,
+                    'alamat'        => $m->alamat,
+                    'status_lunas'  => intval($m->status_lunas),
+                    'tagihan'       => $tagihanList
+                ];
+            });
 
-        return response()->json([
-            'pemungut' => [
-                'id' => $pemungut->id,
-                'nama' => $pemungut->name,
-            ],
-            'masyarakat' => $masyarakatList
-        ]);
+            // Hitung persentase capaian
+            $persentase = $target_nominal > 0 
+                ? round(($totalCapaian / $target_nominal) * 100, 2) 
+                : 0;
+
+            return response()->json([
+                'success' => true,
+                'pemungut' => [
+                    'id' => $pemungut->id,
+                    'nama' => $pemungut->nama // ✅ pakai nama dari tabel pemungut
+                            ?? $pemungut->user->name // fallback ke user->name
+                            ?? null,
+                    'target_nominal' => $target_nominal,
+                    'sisa_tagihan' => $totalSisa,
+                    'target_tercapai' => $totalCapaian,
+                    'persentase' => $persentase,
+                ],
+                'masyarakat' => $masyarakatList
+            ], 200);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data pemungut tidak ditemukan.'
+            ], 404);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan pada server.',
+                'error'   => $e->getMessage() // 🚨 hapus di production
+            ], 500);
+        }
     }
 
     public function updateStatus(Request $request)
@@ -72,7 +108,7 @@ class PemungutController extends Controller
             ]);
 
             // Cari tagihan
-            $tagihan = Tagihan::findOrFail($request->id);
+            $tagihan = Tagihan::findOrFail($request->tagihan_id);
 
             // Update status
             $tagihan->status = $request->status;

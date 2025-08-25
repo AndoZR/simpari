@@ -13,9 +13,13 @@ return new class extends Migration
     {
         Schema::create('masyarakat', function (Blueprint $table) {
             $table->id();
+            $table->string('nama');
+            $table->string('nop')->unique()->nullable();
             $table->string('telepon',13)->unique()->nullable();
             $table->string('alamat');
+            $table->boolean('status_lunas')->default(false);
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('pemungut_id')->constrained('pemungut')->onDelete('cascade');
             $table->timestamps();
         }); 
     }
