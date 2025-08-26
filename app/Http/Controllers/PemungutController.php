@@ -21,12 +21,12 @@ class PemungutController extends Controller
     public function showTagihan()
     {
         try {
-            $user = Auth::user();
+            $user = Auth::user(); 
 
             // Ambil pemungut berdasarkan user login + relasi lengkap
             $pemungut = Pemungut::with([
                 'user',
-                'masyarakat.tagihan.cicilan'
+                'masyarakat.tagihan'
             ])->firstOrFail();
 
             $masyarakatList = $pemungut->masyarakat->map(function ($m) use (&$target_nominal, &$totalSisa, &$totalCapaian) {
@@ -44,14 +44,7 @@ class PemungutController extends Controller
                         'keterangan'      => $tagih->keterangan,
                         'tanggal_tagihan' => $tagih->tanggal_tagihan,
                         'tanggal_lunas'   => $tagih->tanggal_lunas,
-                        'cicilan'         => $tagih->cicilan->map(function ($c) {
-                            return [
-                                'id'           => $c->id,
-                                'jumlah_bayar' => $c->jumlah_bayar,
-                                'tanggal_bayar'=> $c->tanggal_bayar,
-                                'keterangan'   => $c->keterangan,
-                            ];
-                        })
+                        'cicilan'         => $tagih->cicilan
                     ];
                 });
 
@@ -99,7 +92,7 @@ class PemungutController extends Controller
         }
     }
 
-    public function updateStatus(Request $request)
+    public function updateTagihan(Request $request)
     {
         try {
             // Validasi input
@@ -113,11 +106,22 @@ class PemungutController extends Controller
             // Update status
             $tagihan->status = $request->status;
             $tagihan->keterangan = $request->keterangan ?? $tagihan->keterangan;
-            $tagihan->tanggal_lunas = $request->tanggal_lunas ?? $tagihan->tanggal_lunas;
-
+            
             // Update tanggal_lunas jika ada
-            if ($request->status === 'lunas' && $request->tanggal_lunas) {
-                $tagihan->tanggal_lunas = $request->tanggal_lunas;
+            if ($request->status === 'lunas') {
+                $tagihan->tanggal_lunas = now();
+            } elseif ($request->status === 'cicilan') {
+                $tagihan->tanggal_lunas = null;
+                $tagihan->cicilan = $request->cicilan ?? $tagihan->cicilan;
+                $tagihan->sisa_tagihan = $tagihan->jumlah - ($tagihan->cicilan ?? 0);
+            } elseif ($request->status === 'belum') {
+                $tagihan->cicilan = 0;
+                $tagihan->sisa_tagihan = $tagihan->jumlah;
+                $tagihan->tanggal_lunas = null;
+            }elseif ($request->cicilan == $tagihan->jumlah) {
+                $tagihan->status = 'lunas';
+                $tagihan->tanggal_lunas = now();
+                $tagihan->sisa_tagihan = 0;
             }
 
             $tagihan->save();

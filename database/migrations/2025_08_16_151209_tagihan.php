@@ -14,9 +14,10 @@ return new class extends Migration
             // FK ke users.id (role masyarakat)
             $table->unsignedBigInteger('masyarakat_id');
             $table->string('nop',30)->unique()->nullable();
-            $table->decimal('jumlah', 15, 2); // Total tagihan
-            $table->decimal('sisa_tagihan', 15, 2); // Sisa setelah dicicil
+            $table->decimal('jumlah', 15); // Total tagihan
+            $table->decimal('sisa_tagihan', 15); // Sisa setelah dicicil
             $table->enum('status', ['belum', 'cicilan', 'didesa', 'dipemungut', 'lunas'])->default('belum');
+            $table->decimal('cicilan',15)->nullable();
             $table->text('keterangan')->nullable();
 
             $table->date('tanggal_tagihan'); 
@@ -30,20 +31,20 @@ return new class extends Migration
                 ->onDelete('cascade');
         });
 
-        Schema::create('cicilan_tagihan', function (Blueprint $table) {
-            $table->bigIncrements('id'); // PK
+        // Schema::create('cicilan_tagihan', function (Blueprint $table) {
+        //     $table->bigIncrements('id'); // PK
 
-            $table->unsignedBigInteger('tagihan_id'); // FK ke tagihan
-            $table->decimal('jumlah_bayar', 15, 2); // nominal cicilan
-            $table->date('tanggal_bayar'); // kapan dibayar
-            $table->text('keterangan')->nullable(); // opsional
+        //     $table->unsignedBigInteger('tagihan_id'); // FK ke tagihan
+        //     $table->decimal('jumlah_bayar', 15, 2); // nominal cicilan
+        //     $table->date('tanggal_bayar'); // kapan dibayar
+        //     $table->text('keterangan')->nullable(); // opsional
 
-            $table->timestamps();
+        //     $table->timestamps();
 
-            // Relasi ke tabel tagihan
-            $table->foreign('tagihan_id')
-                ->references('id')->on('tagihan')
-                ->onDelete('cascade');
-        });
+        //     // Relasi ke tabel tagihan
+        //     $table->foreign('tagihan_id')
+        //         ->references('id')->on('tagihan')
+        //         ->onDelete('cascade');
+        // });
     }
 };

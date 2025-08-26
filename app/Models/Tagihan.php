@@ -19,6 +19,12 @@ class Tagihan extends Model
         'tanggal_lunas',
     ];
 
+    protected $casts = [
+        'jumlah' => 'float',
+        'sisa_tagihan' => 'float',
+        'cicilan' => 'float',
+    ];
+
     public function masyarakat()
     {
         return $this->belongsTo(Masyarakat::class, 'masyarakat_id');
