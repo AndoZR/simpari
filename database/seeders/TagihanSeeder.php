@@ -26,21 +26,29 @@ class tagihanSeeder extends Seeder
                 $jumlah = rand(200000, 1000000); 
                 $status = collect(['lunas', 'cicilan', 'belum'])->random();
 
-                // generate NOP 18 digit
-                $prov = str_pad(rand(1, 34), 2, '0', STR_PAD_LEFT);
-                $kab = str_pad(rand(1, 99), 2, '0', STR_PAD_LEFT);
-                $kecKel = str_pad(rand(1, 999999), 6, '0', STR_PAD_LEFT);
-                $urut = str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
-                $jenis = rand(0, 9);
-                $nop = $prov.$kab.$kecKel.$urut.$jenis;
+                // Generate NOP 18 digit dengan segmen:
+                // 2 prov | 2 kab | 3 kec | 3 kel | 3 blok | 4 urut | 1 jenis = 18 digit
+                do {
+                    $prov  = str_pad(rand(1, 34),    2, '0', STR_PAD_LEFT);
+                    $kab   = str_pad(rand(1, 99),    2, '0', STR_PAD_LEFT);
+                    $kec   = str_pad(rand(1, 999),   3, '0', STR_PAD_LEFT);
+                    $kel   = str_pad(rand(1, 999),   3, '0', STR_PAD_LEFT);
+                    $blok  = str_pad(rand(1, 999),   3, '0', STR_PAD_LEFT);
+                    $urut  = str_pad(rand(1, 9999),  4, '0', STR_PAD_LEFT);
+                    $jenis = str_pad(rand(0, 9),     1, '0', STR_PAD_LEFT);
 
-                $nopFormatted = substr($nop,0,2).".".
-                                substr($nop,2,2).".".
-                                substr($nop,4,3).".".
-                                substr($nop,7,3).".".
-                                substr($nop,10,3)."-".
-                                substr($nop,13,4).".".
-                                substr($nop,17,1);
+                    $nop_raw = $prov.$kab.$kec.$kel.$blok.$urut.$jenis; // 18 digit
+
+                    // Format: 32.73.080.005.011-0053.0
+                    $nopFormatted = substr($nop_raw,0,2) . "." .
+                                    substr($nop_raw,2,2) . "." .
+                                    substr($nop_raw,4,3) . "." .
+                                    substr($nop_raw,7,3) . "." .
+                                    substr($nop_raw,10,3) . "-" .
+                                    substr($nop_raw,13,4) . "." .
+                                    substr($nop_raw,17,1);
+                    // ulangi kalau sudah ada di DB (karena kolom unique)
+                } while (\App\Models\Tagihan::where('nop', $nopFormatted)->exists());
 
                 // logika pembayaran
                 $cicilan = null;

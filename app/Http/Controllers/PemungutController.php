@@ -18,49 +18,128 @@ class PemungutController extends Controller
         // Logic to return a list of Pemungut
     }
 
+    // public function showTagihan() // ver old
+    // {
+    //     try {
+    //         $user = Auth::user(); 
+
+    //         // Ambil pemungut berdasarkan user login + relasi lengkap
+    //         $pemungut = Pemungut::with([
+    //             'user',
+    //             'masyarakat.tagihan'
+    //         ])->firstOrFail();
+
+    //         $masyarakatList = $pemungut->masyarakat->map(function ($m) use (&$target_nominal, &$totalSisa, &$totalCapaian) {
+    //             $tagihanList = $m->tagihan->map(function ($tagih) use (&$target_nominal, &$totalSisa, &$totalCapaian) {
+    //                 $target_nominal += $tagih->jumlah ?? 0;
+    //                 $totalSisa    += $tagih->sisa_tagihan ?? 0;
+    //                 $totalCapaian += ($tagih->jumlah ?? 0) - ($tagih->sisa_tagihan ?? 0);
+
+    //                 return [
+    //                     'id_tagihan'              => $tagih->id,
+    //                     'nop'          => $tagih->nop,
+    //                     'jumlah'          => $tagih->jumlah,
+    //                     'status'          => $tagih->status,
+    //                     'sisa_tagihan'    => $tagih->sisa_tagihan,
+    //                     'keterangan'      => $tagih->keterangan,
+    //                     'tanggal_tagihan' => $tagih->tanggal_tagihan,
+    //                     'tanggal_lunas'   => $tagih->tanggal_lunas,
+    //                     'cicilan'         => $tagih->cicilan
+    //                 ];
+    //             });
+
+    //             return [
+    //                 'masyarakat_id' => $m->id,
+    //                 'nama'          => $m->nama,
+    //                 'alamat'        => $m->alamat,
+    //                 'status_lunas'  => intval($m->status_lunas),
+    //                 'tagihan'       => $tagihanList
+    //             ];
+    //         });
+
+    //         // Hitung persentase capaian
+    //         $persentase = $target_nominal > 0 
+    //             ? round(($totalCapaian / $target_nominal) * 100, 2) 
+    //             : 0;
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'pemungut' => [
+    //                 'id' => $pemungut->id,
+    //                 'nama' => $pemungut->nama // ✅ pakai nama dari tabel pemungut
+    //                         ?? $pemungut->user->name // fallback ke user->name
+    //                         ?? null,
+    //                 'target_nominal' => $target_nominal,
+    //                 'sisa_tagihan' => $totalSisa,
+    //                 'target_tercapai' => $totalCapaian,
+    //                 'persentase' => $persentase,
+    //             ],
+    //             'masyarakat' => $masyarakatList
+    //         ], 200);
+
+    //     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Data pemungut tidak ditemukan.'
+    //         ], 404);
+
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Terjadi kesalahan pada server.',
+    //             'error'   => $e->getMessage() // 🚨 hapus di production
+    //         ], 500);
+    //     }
+    // }
+
     public function showTagihan()
     {
         try {
-            $user = Auth::user(); 
+            $dataStatus = ['belum', 'cicilan', 'didesa', 'dipemungut', 'lunas'];
+            // Ambil pemungut beserta relasi masyarakat + tagihan
+            $pemungut = Pemungut::with(['user', 'masyarakat.tagihan'])->firstOrFail();
 
-            // Ambil pemungut berdasarkan user login + relasi lengkap
-            $pemungut = Pemungut::with([
-                'user',
-                'masyarakat.tagihan'
-            ])->firstOrFail();
+            // Inisialisasi total
+            $target_nominal = 0;
+            $totalSisa      = 0;
+            $totalCapaian   = 0;
 
             $masyarakatList = $pemungut->masyarakat->map(function ($m) use (&$target_nominal, &$totalSisa, &$totalCapaian) {
-                $tagihanList = $m->tagihan->map(function ($tagih) use (&$target_nominal, &$totalSisa, &$totalCapaian) {
+                $tagihanList = $m->tagihan->map(function ($tagih) use (&$target_nominal, &$totalSisa, &$totalCapaian, $m) {
+                    // Hitung total-target, sisa, dan capaian
                     $target_nominal += $tagih->jumlah ?? 0;
-                    $totalSisa    += $tagih->sisa_tagihan ?? 0;
-                    $totalCapaian += ($tagih->jumlah ?? 0) - ($tagih->sisa_tagihan ?? 0);
+                    $totalSisa      += $tagih->sisa_tagihan ?? 0;
+                    $totalCapaian   += ($tagih->jumlah ?? 0) - ($tagih->sisa_tagihan ?? 0);
+
+                    if ($tagih->status === 'lunas') {
+                        $statusTagihan = 1; // sudah lunas
+                    } else {
+                        $statusTagihan = 0; // belum lunas
+                    }
 
                     return [
-                        'id'              => $tagih->id,
-                        'nop'          => $tagih->nop,
+                        'tagihan_id'      => $tagih->id,
+                        'nop'             => $tagih->nop,
                         'jumlah'          => $tagih->jumlah,
-                        'status'          => $tagih->status,
                         'sisa_tagihan'    => $tagih->sisa_tagihan,
                         'keterangan'      => $tagih->keterangan,
                         'tanggal_tagihan' => $tagih->tanggal_tagihan,
                         'tanggal_lunas'   => $tagih->tanggal_lunas,
-                        'cicilan'         => $tagih->cicilan
+                        'nama'            => $m->nama,
+                        'alamat'          => $m->alamat,
+                        'status_lunas'    => $statusTagihan,
                     ];
                 });
 
-                return [
-                    'masyarakat_id' => $m->id,
-                    'nama'          => $m->nama,
-                    'alamat'        => $m->alamat,
-                    'status_lunas'  => intval($m->status_lunas),
-                    'tagihan'       => $tagihanList
-                ];
-            });
+                return $tagihanList; // return semua tagihan milik masyarakat ini
+            })->flatten(1); // gabung jadi satu list besar
 
             // Hitung persentase capaian
             $persentase = $target_nominal > 0 
                 ? round(($totalCapaian / $target_nominal) * 100, 2) 
                 : 0;
+
+            
 
             return response()->json([
                 'success' => true,
@@ -92,36 +171,75 @@ class PemungutController extends Controller
         }
     }
 
+    // public function updateTagihan(Request $request)
+    // {
+    //     try {
+    //         // Validasi input
+    //         $request->validate([
+    //             'nominal' => 'required',
+    //             'tanggal_lunas' => 'required',
+    //         ]);
+    //         // Cari tagihan
+    //         $tagihan = Tagihan::findOrFail($request->tagihan_id);
+
+    //         // Update status
+    //         $tagihan->status = $request->status;
+    //         $tagihan->keterangan = $request->keterangan ?? $tagihan->keterangan;
+            
+    //         // Update tanggal_lunas jika ada
+    //         if ($request->status === 'lunas') {
+    //             $tagihan->tanggal_lunas = now();
+    //         } elseif ($request->status === 'cicilan') {
+    //             $tagihan->tanggal_lunas = null;
+    //             $tagihan->cicilan = $request->cicilan ?? $tagihan->cicilan;
+    //             $tagihan->sisa_tagihan = $tagihan->jumlah - ($tagihan->cicilan ?? 0);
+    //         } elseif ($request->status === 'belum') {
+    //             $tagihan->cicilan = 0;
+    //             $tagihan->sisa_tagihan = $tagihan->jumlah;
+    //             $tagihan->tanggal_lunas = null;
+    //         }elseif ($request->cicilan == $tagihan->jumlah) {
+    //             $tagihan->status = 'lunas';
+    //             $tagihan->tanggal_lunas = now();
+    //             $tagihan->sisa_tagihan = 0;
+    //         }
+
+    //         $tagihan->save();
+
+    //         return response()->json([
+    //             'message' => 'Status tagihan berhasil diupdate',
+    //             'tagihan' => $tagihan
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'message' => 'Terjadi kesalahan saat update status',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
     public function updateTagihan(Request $request)
     {
         try {
             // Validasi input
             $request->validate([
-                'status' => 'required',
+                'nominal' => 'required',
+                'tanggal_lunas' => 'required',
             ]);
-
             // Cari tagihan
             $tagihan = Tagihan::findOrFail($request->tagihan_id);
 
             // Update status
-            $tagihan->status = $request->status;
-            $tagihan->keterangan = $request->keterangan ?? $tagihan->keterangan;
             
             // Update tanggal_lunas jika ada
-            if ($request->status === 'lunas') {
-                $tagihan->tanggal_lunas = now();
-            } elseif ($request->status === 'cicilan') {
-                $tagihan->tanggal_lunas = null;
-                $tagihan->cicilan = $request->cicilan ?? $tagihan->cicilan;
-                $tagihan->sisa_tagihan = $tagihan->jumlah - ($tagihan->cicilan ?? 0);
-            } elseif ($request->status === 'belum') {
-                $tagihan->cicilan = 0;
-                $tagihan->sisa_tagihan = $tagihan->jumlah;
-                $tagihan->tanggal_lunas = null;
-            }elseif ($request->cicilan == $tagihan->jumlah) {
+            if ($request->nominal == $tagihan->jumlah) {
+                $tagihan->tanggal_lunas = $request->tanggal_lunas;
                 $tagihan->status = 'lunas';
-                $tagihan->tanggal_lunas = now();
+                $tagihan->cicilan = $request->nominal;
                 $tagihan->sisa_tagihan = 0;
+            } elseif ($request->nominal != 0 && $request->nominal < $tagihan->jumlah) {
+                $tagihan->cicilan = $request->nominal ?? $tagihan->nominal;
+                $tagihan->sisa_tagihan = $tagihan->jumlah - ($tagihan->cicilan ?? 0);
+                $tagihan->status = 'cicilan';
             }
 
             $tagihan->save();
