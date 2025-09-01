@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
@@ -11,6 +12,24 @@ return new class extends Migration
      */
     public function up(): void
     {
+        $path = database_path('migrations/indonesia.sql');
+        $sql = file_get_contents($path);
+        DB::unprepared($sql);
+
+        // 1. Hapus desa di luar Bondowoso
+        DB::table('villages')->whereNotIn('district_id', function($q) {
+            $q->select('id')->from('districts')->where('regency_id', '3511');
+        })->delete();
+
+        // 2. Hapus kecamatan di luar Bondowoso
+        DB::table('districts')->where('regency_id', '!=', '3511')->delete();
+
+        // 3. Hapus kabupaten/kota selain Bondowoso
+        DB::table('regencies')->where('id', '!=', '3511')->delete();
+
+        // 4. Hapus provinsi selain Jawa Timur
+        DB::table('provinces')->where('id', '!=', '35')->delete();
+
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->char('nik',16)->unique();

@@ -10,10 +10,10 @@ class Masyarakat extends Model
 
     protected $fillable = [
         'nama',
-        'nop',
         'telepon',
         'alamat',
         'status_lunas',
+        'pemungut_id'
     ];
 
     protected $casts = [

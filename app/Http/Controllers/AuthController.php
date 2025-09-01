@@ -139,7 +139,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return view('Dashborad.Main')->with(['message' => 'Register & login success', 'user' => $user]);
+        return redirect('dashboard')->with(['message' => 'Register & login success', 'user' => $user]);
     }
 
     // Login
@@ -165,7 +165,7 @@ class AuthController extends Controller
             if (Auth::attempt($credentials)) {
                 $user = Auth::user();
 
-                return view('Dashboard.Layout.Main')->with(['message' => 'Login success', 'user' => $user]);
+                return redirect('dashboard')->with(['message' => 'Login success', 'user' => $user]);
             }
 
             // 🔹 Jika gagal login

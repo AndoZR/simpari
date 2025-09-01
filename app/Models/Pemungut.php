@@ -12,6 +12,7 @@ class Pemungut extends Model
         'nama',
         'telepon',
         'alamat',
+        'user_id',
     ];
 
     // Relasi balik ke user

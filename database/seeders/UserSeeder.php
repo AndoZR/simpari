@@ -66,6 +66,7 @@ class UserSeeder extends Seeder
                 'telepon' => '0821' . str_pad($index + 1, 7, '0', STR_PAD_LEFT),
                 'alamat' => 'Jl. Masyarakat No. ' . ($index + 1) . ', Desa Sukamaju',
                 'pemungut_id' => $pemungut_id,
+                'village_id' => 3511080011,
             ]);
         }
 

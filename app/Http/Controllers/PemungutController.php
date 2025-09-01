@@ -230,11 +230,9 @@ public function bayarTagihan(Request $request)
         $nop = $riwayat[0]["nop"];
         $nominal = $riwayat[0]["bayar"]["0"]["nominal"];
         $tanggal_bayar = $riwayat[0]["bayar"]["0"]["timestamp"];
-        // dd($riwayat);
 
         // Cari tagihan berdasarkan NOP
         $tagihan = Tagihan::where('nop', $nop)->firstOrFail();
-        // $sisaTagihanSebelum = $tagihan->sisa_tagihan;
 
         // Logika update status
         if ($request->nominal == $tagihan->jumlah) {
