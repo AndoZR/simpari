@@ -26,8 +26,7 @@ class tagihanSeeder extends Seeder
                 $jumlah = rand(200000, 1000000); 
                 $status = collect(['lunas', 'cicilan', 'belum'])->random();
 
-                // Generate NOP 18 digit dengan segmen:
-                // 2 prov | 2 kab | 3 kec | 3 kel | 3 blok | 4 urut | 1 jenis = 18 digit
+                // generate NOP unik (18 digit dengan format)
                 do {
                     $prov  = str_pad(rand(1, 34),    2, '0', STR_PAD_LEFT);
                     $kab   = str_pad(rand(1, 99),    2, '0', STR_PAD_LEFT);
@@ -39,7 +38,6 @@ class tagihanSeeder extends Seeder
 
                     $nop_raw = $prov.$kab.$kec.$kel.$blok.$urut.$jenis; // 18 digit
 
-                    // Format: 32.73.080.005.011-0053.0
                     $nopFormatted = substr($nop_raw,0,2) . "." .
                                     substr($nop_raw,2,2) . "." .
                                     substr($nop_raw,4,3) . "." .
@@ -47,32 +45,55 @@ class tagihanSeeder extends Seeder
                                     substr($nop_raw,10,3) . "-" .
                                     substr($nop_raw,13,4) . "." .
                                     substr($nop_raw,17,1);
-                    // ulangi kalau sudah ada di DB (karena kolom unique)
-                } while (\App\Models\Tagihan::where('nop', $nopFormatted)->exists());
+                } while (Tagihan::where('nop', $nopFormatted)->exists());
 
-                // logika pembayaran
-                $cicilan = null;
+                // default
                 $sisa = $jumlah;
+                $tanggalLunas = null;
 
-                if ($status == 'cicilan') {
-                    $cicilan = rand(10000, (int)($jumlah * 0.7)); // cicilan antara 10rb – 70% dari jumlah
-                    $sisa = $jumlah - $cicilan;
-                } elseif ($status == 'lunas') {
-                    $cicilan = $jumlah;
-                    $sisa = 0;
-                }
-
-                Tagihan::create([
+                // simpan tagihan
+                $tagihan = Tagihan::create([
                     'masyarakat_id' => $masyarakat->id,
                     'jumlah' => $jumlah,
                     'status' => $status,
                     'sisa_tagihan' => $sisa,
-                    'cicilan' => $cicilan,
                     'keterangan' => 'Tagihan pajak ' . ($i + 1),
                     'tanggal_tagihan' => Carbon::now()->subDays(rand(0, 60)),
-                    'tanggal_lunas' => $status == 'lunas' ? Carbon::now()->subDays(rand(1, 30)) : null,
+                    'tanggal_lunas' => null,
                     'nop' => $nopFormatted,
                 ]);
+
+                // jika cicilan atau lunas → isi tabel cicilan_tagihan
+                if ($status === 'cicilan') {
+                    $totalBayar = 0;
+                    $jumlahCicilan = rand(1, 3);
+
+                    for ($j = 0; $j < $jumlahCicilan; $j++) {
+                        $nominal = rand(10000, (int)($jumlah * 0.5));
+                        $totalBayar += $nominal;
+
+                        Cicilan::create([
+                            'tagihan_id' => $tagihan->id,
+                            'jumlah_bayar' => $nominal,
+                            'tanggal_bayar' => Carbon::now()->subDays(rand(0, 30)),
+                        ]);
+                    }
+
+                    // update sisa
+                    $tagihan->sisa_tagihan = max(0, $jumlah - $totalBayar);
+                    $tagihan->save();
+                } elseif ($status === 'lunas') {
+                    // bayar langsung penuh
+                    Cicilan::create([
+                        'tagihan_id' => $tagihan->id,
+                        'jumlah_bayar' => $jumlah,
+                        'tanggal_bayar' => Carbon::now()->subDays(rand(1, 30)),
+                    ]);
+
+                    $tagihan->sisa_tagihan = 0;
+                    $tagihan->tanggal_lunas = Carbon::now()->subDays(rand(1, 30));
+                    $tagihan->save();
+                }
             }
         }
     }

@@ -8,11 +8,12 @@ class Cicilan extends Model
 {
     protected $table = 'cicilan_tagihan';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'tagihan_id',
         'jumlah_bayar',
         'tanggal_bayar',
-        'keterangan',
     ];
 
     // Relasi ke tagihan
