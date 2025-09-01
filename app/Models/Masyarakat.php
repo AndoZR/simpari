@@ -13,7 +13,8 @@ class Masyarakat extends Model
         'telepon',
         'alamat',
         'status_lunas',
-        'pemungut_id'
+        'pemungut_id',
+        'village_id'
     ];
 
     protected $casts = [
