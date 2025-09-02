@@ -228,156 +228,46 @@ class PemungutController extends Controller
 
             // Decode JSON dari request
             $riwayat = json_decode($request->riwayat_tagihan, true);
-            $nop = $riwayat[0]["nop"];
-            $nominal = $riwayat[0]["bayar"]["0"]["nominal"];
-            $tanggal_bayar = $riwayat[0]["bayar"]["0"]["timestamp"];
 
-            // Cari tagihan berdasarkan NOP
-            $tagihan = Tagihan::where('nop', $nop)->firstOrFail();
+            foreach($riwayat as $item){
+                $nop = $item["nop"];
+                $nominal = $item["bayar"];
 
-            // Logika update status
-            if ($request->nominal == $tagihan->jumlah) {
-                $tagihan->tanggal_lunas = $request->tanggal_lunas ?? now();
-                $tagihan->status = 'lunas';
-                $tagihan->sisa_tagihan = 0;
-            } else {
-                $tagihan->sisa_tagihan = $tagihan->sisa_tagihan - $nominal;
-                $tagihan->status = 'cicilan';
-                Cicilan::create([
-                    'tagihan_id' => $tagihan->id,
-                    'jumlah_bayar' => $nominal,
-                    'tanggal_bayar' => $tanggal_bayar,
-                ]);
-                if ($tagihan->sisa_tagihan <= 0) {
+                // Cari tagihan berdasarkan NOP
+                $tagihan = Tagihan::where('nop', $nop)->firstOrFail();
+
+                // Logika update status
+                if ($request->nominal == $tagihan->jumlah) {
+                    $tagihan->tanggal_lunas = $request->tanggal_lunas ?? now();
                     $tagihan->status = 'lunas';
                     $tagihan->sisa_tagihan = 0;
-                    $tagihan->tanggal_lunas = now();
+                } else {
+                    $tagihan->sisa_tagihan = $tagihan->sisa_tagihan - $nominal;
+                    $tagihan->status = 'cicilan';
+                    Cicilan::create([
+                        'tagihan_id' => $tagihan->id,
+                        'jumlah_bayar' => $nominal,
+                        'tanggal_bayar' => now(),
+                    ]);
+                    if ($tagihan->sisa_tagihan <= 0) {
+                        $tagihan->status = 'lunas';
+                        $tagihan->sisa_tagihan = 0;
+                        $tagihan->tanggal_lunas = now();
+                    }
                 }
-            }
 
-            $tagihan->save();
+                $tagihan->save();
+            }
 
             return response()->json([
                 'message' => 'Bayar tagihan berhasil',
-                'tagihan' => $tagihan
+                // 'tagihan' => $tagihan
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Terjadi kesalahan saat bayar tagihan',
                 'error' => $e->getMessage()
             ], 500);
-        }
-    }
-
-
-    public function showCicilan(Request $request)
-    {
-        try{
-            $request->validate([
-            'user_id' => 'required|exists:users,id',
-            ]);
-
-            $userId = $request->user_id;
-
-            // Ambil cicilan untuk tagihan milik user tertentu
-            $cicilan = Cicilan::get();
-
-            return response()->json([
-                'status' => 'success',
-                'data' => $cicilan
-            ]);
-        }catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Terjadi kesalahan saat mengambil data',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function storeCicilan(Request $request)
-    {
-        $request->validate([
-            'tagihan_id' => 'required|exists:tagihan,id',
-            'jumlah_bayar' => 'required|numeric|min:1',
-            'tanggal_bayar' => 'required|date',
-            'keterangan' => 'nullable|string',
-        ]);
-
-        try {
-            $tagihan = Tagihan::findOrFail($request->tagihan_id);
-
-            // Cek sisa_tagihan
-            if ($request->jumlah_bayar > $tagihan->sisa_tagihan) {
-                return response()->json(['error' => 'Jumlah bayar melebihi sisa tagihan'], 422);
-            }
-
-            // Simpan cicilan
-            $cicilan = Cicilan::create([
-                'tagihan_id' => $tagihan->id,
-                'jumlah_bayar' => $request->jumlah_bayar,
-                'tanggal_bayar' => $request->tanggal_bayar,
-                'keterangan' => $request->keterangan ?? null,
-            ]);
-
-            // Kurangi sisa_tagihan
-            $tagihan->sisa_tagihan -= $request->jumlah_bayar;
-
-            // Update status jika lunas
-            if ($tagihan->sisa_tagihan <= 0) {
-                $tagihan->status = 'lunas';
-            } else {
-                $tagihan->status = 'cicilan';
-            }
-
-            $tagihan->save();
-
-            return response()->json(['message' => 'Cicilan berhasil disimpan', 'cicilan' => $cicilan]);
-
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-    }
-
-    public function updateCicilan(Request $request)
-    {
-        $request->validate([
-            'jumlah_bayar' => 'nullable|numeric|min:1',
-            'tanggal_bayar' => 'nullable|date',
-            'keterangan' => 'nullable|string',
-        ]);
-
-        try {
-            $cicilan = Cicilan::findOrFail($request->cicilan_id);
-            $tagihan = $cicilan->tagihan;
-
-            // Jika jumlah_bayar diubah, update sisa_tagihan
-            if ($request->filled('jumlah_bayar')) {
-                $selisih = $request->jumlah_bayar - $cicilan->jumlah_bayar;
-                if ($selisih > $tagihan->sisa_tagihan) {
-                    return response()->json(['error' => 'Jumlah bayar melebihi sisa tagihan'], 422);
-                }
-
-                $tagihan->sisa_tagihan -= $selisih;
-                $cicilan->jumlah_bayar = $request->jumlah_bayar;
-            }
-
-            if ($request->filled('tanggal_bayar')) {
-                $cicilan->tanggal_bayar = $request->tanggal_bayar;
-            }
-
-            if ($request->filled('keterangan')) {
-                $cicilan->keterangan = $request->keterangan;
-            }
-
-            // Update status tagihan
-            $tagihan->status = $tagihan->sisa_tagihan <= 0 ? 'lunas' : 'cicilan';
-            $tagihan->save();
-            $cicilan->save();
-
-            return response()->json(['message' => 'Cicilan berhasil diupdate', 'cicilan' => $cicilan]);
-
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
