@@ -9,11 +9,10 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('logout', [AuthController::class, 'logout']);
 
+Route::post('get-tagihan', [PemungutController::class, 'getTagihanByNop']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('profile', [PemungutController::class, 'showTagihan']);
-    // Route::post('tagihan/cicilan', [PemungutController::class, 'showCicilan']);
-    // Route::post('tagihan/cicilan/store', [PemungutController::class, 'storeCicilan']);
-    // Route::post('tagihan/cicilan/update', [PemungutController::class, 'updateCicilan']);
     Route::post('tagihan/bayar-tagihan', [PemungutController::class, 'bayarTagihan']);
 
     // Route::get('profile', [AuthController::class, 'profile']);

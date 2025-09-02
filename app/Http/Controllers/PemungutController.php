@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ResponseFormatter;
 use App\Models\Cicilan;
 use App\Models\Masyarakat;
 use App\Models\Pemungut;
@@ -217,56 +218,56 @@ class PemungutController extends Controller
     //     }
     // }
 
-public function bayarTagihan(Request $request)
-{
-    try {
-        // Validasi cuma riwayat_tagihan aja
-        $request->validate([
-            'riwayat_tagihan' => 'required',
-        ]);
-
-        // Decode JSON dari request
-        $riwayat = json_decode($request->riwayat_tagihan, true);
-        $nop = $riwayat[0]["nop"];
-        $nominal = $riwayat[0]["bayar"]["0"]["nominal"];
-        $tanggal_bayar = $riwayat[0]["bayar"]["0"]["timestamp"];
-
-        // Cari tagihan berdasarkan NOP
-        $tagihan = Tagihan::where('nop', $nop)->firstOrFail();
-
-        // Logika update status
-        if ($request->nominal == $tagihan->jumlah) {
-            $tagihan->tanggal_lunas = $request->tanggal_lunas ?? now();
-            $tagihan->status = 'lunas';
-            $tagihan->sisa_tagihan = 0;
-        } else {
-            $tagihan->sisa_tagihan = $tagihan->sisa_tagihan - $nominal;
-            $tagihan->status = 'cicilan';
-            Cicilan::create([
-                'tagihan_id' => $tagihan->id,
-                'jumlah_bayar' => $nominal,
-                'tanggal_bayar' => $tanggal_bayar,
+    public function bayarTagihan(Request $request)
+    {
+        try {
+            // Validasi cuma riwayat_tagihan aja
+            $request->validate([
+                'riwayat_tagihan' => 'required',
             ]);
-            if ($tagihan->sisa_tagihan <= 0) {
+
+            // Decode JSON dari request
+            $riwayat = json_decode($request->riwayat_tagihan, true);
+            $nop = $riwayat[0]["nop"];
+            $nominal = $riwayat[0]["bayar"]["0"]["nominal"];
+            $tanggal_bayar = $riwayat[0]["bayar"]["0"]["timestamp"];
+
+            // Cari tagihan berdasarkan NOP
+            $tagihan = Tagihan::where('nop', $nop)->firstOrFail();
+
+            // Logika update status
+            if ($request->nominal == $tagihan->jumlah) {
+                $tagihan->tanggal_lunas = $request->tanggal_lunas ?? now();
                 $tagihan->status = 'lunas';
                 $tagihan->sisa_tagihan = 0;
-                $tagihan->tanggal_lunas = now();
+            } else {
+                $tagihan->sisa_tagihan = $tagihan->sisa_tagihan - $nominal;
+                $tagihan->status = 'cicilan';
+                Cicilan::create([
+                    'tagihan_id' => $tagihan->id,
+                    'jumlah_bayar' => $nominal,
+                    'tanggal_bayar' => $tanggal_bayar,
+                ]);
+                if ($tagihan->sisa_tagihan <= 0) {
+                    $tagihan->status = 'lunas';
+                    $tagihan->sisa_tagihan = 0;
+                    $tagihan->tanggal_lunas = now();
+                }
             }
+
+            $tagihan->save();
+
+            return response()->json([
+                'message' => 'Bayar tagihan berhasil',
+                'tagihan' => $tagihan
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat bayar tagihan',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $tagihan->save();
-
-        return response()->json([
-            'message' => 'Bayar tagihan berhasil',
-            'tagihan' => $tagihan
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Terjadi kesalahan saat bayar tagihan',
-            'error' => $e->getMessage()
-        ], 500);
     }
-}
 
 
     public function showCicilan(Request $request)
@@ -379,4 +380,60 @@ public function bayarTagihan(Request $request)
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
+    private function formatNop($nop) {
+        // hapus semua karakter non-digit kecuali terakhir yang mungkin ada - dan . jika sudah ada
+        $nop = preg_replace('/\D/', '', $nop); // hanya ambil angka
+        // pastikan panjangnya sesuai, misal 18 digit + 1 kode
+        // contoh implementasi sesuai format nop: 24.52.891.153.727-8434.1
+        $formatted = substr($nop,0,2) . '.' .
+                    substr($nop,2,2) . '.' .
+                    substr($nop,4,3) . '.' .
+                    substr($nop,7,3) . '.' .
+                    substr($nop,10,3) . '-' .
+                    substr($nop,13,4) . '.' .
+                    substr($nop,17); // sesuaikan panjang
+        return $formatted;
+    }
+
+    public function getTagihanByNop(Request $request)
+    {
+        $nop = $request->nop;
+
+        // jika input tidak ada titik, coba format
+        if (strpos($nop, '.') === false) {
+            // hapus semua karakter non-digit
+            $digits = preg_replace('/\D/', '', $nop);
+
+            // cek panjang minimal (misal 18-19 digit sesuai format)
+            if (strlen($digits) < 18) {
+                return ResponseFormatter::error(null, "NOP tidak valid", 422);
+            }
+
+            // format NOP
+            $nop = $this->formatNop($nop);
+        } else {
+            // jika input ada titik, validasi dengan regex
+            $pattern = '/^\d{2}\.\d{2}\.\d{3}\.\d{3}\.\d{3}-\d{4}\.\d$/';
+            if (!preg_match($pattern, $nop)) {
+                return ResponseFormatter::error(null, "Format NOP tidak valid, hilangkan tanda baca atau gunakan format xx.xx.xxx.xxx.xxx-xxxx.x", 422);
+            }
+        }
+
+        // query tagihan
+        $tagihan = Tagihan::where('nop', $nop)
+            ->select('id','masyarakat_id', 'nop', 'jumlah', 'sisa_tagihan', 'status', 'tanggal_lunas')
+            ->with(['masyarakat:id,nama'])
+            ->first();
+
+        if (!$tagihan) {
+            return ResponseFormatter::error(null, "Tagihan tidak ditemukan", 404);
+        }
+
+        return ResponseFormatter::success($tagihan, "Berhasil mendapatkan data tagihan");
+    }
+
+
+
+
 }
