@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nop',30)->unique();
             $table->decimal('jumlah', 15); // Total tagihan
             $table->decimal('sisa_tagihan', 15); // Sisa setelah dicicil
-            $table->enum('status', ['belum', 'cicilan', 'didesa', 'dipemungut', 'lunas'])->default('belum');
+            $table->enum('status', ['belum', 'cicilan', 'didesa', 'selesai', 'lunas'])->default('belum');
             $table->text('keterangan')->nullable();
 
             $table->date('tanggal_tagihan'); 

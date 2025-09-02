@@ -71,14 +71,12 @@ class UserSeeder extends Seeder
         }
 
         User::create([
-            // 'name' => 'Admin Bendahara',
             'nik' => '3201010101011113',
             'password' => Hash::make('123123123'),
             'role' => 'admin_kecamatan',
         ]);
 
         User::create([
-            // 'name' => 'Admin Kecamatan',
             'nik' => '3201010101011114',
             'password' => Hash::make('123123123'),
             'role' => 'admin_desa',

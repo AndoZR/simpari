@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('alamat');
             $table->boolean('status_lunas')->default(false);
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('pemungut_id')->nullable()->constrained('pemungut')->onDelete('cascade');
+            $table->foreignId('pemungut_id')->nullable()->constrained('pemungut');
             $table->char('village_id',10)->nullable();
             $table->foreign('village_id')->references('id')->on('villages')->onDelete('cascade');
             $table->timestamps();

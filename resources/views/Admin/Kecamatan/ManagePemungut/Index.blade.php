@@ -438,7 +438,7 @@
         let tablePlotting;
         $('#table-pemungut tbody').on('click', '.btn-plotting', function() {
             var data = tablePemungut.row($(this).parents('tr')).data();
-            idPemungut = data.pemungut_data.id;
+            idPemungut = data.id;
 
             let urlPlotting = '{{ route("desa.managePemungut.plotting.index", ":idPemungut") }}';
             urlPlotting = urlPlotting.replace(':idPemungut', idPemungut);
@@ -670,7 +670,7 @@
             // Tutup modal saat tombol ✕ atau Batal ditekan
             $modal.find('button').on('click', function() {
                 const text = $(this).text().trim();
-                if (text === '✕' || text === 'Selesai' || text === 'Batal') {
+                if (text === '✕' || text === 'Batal') {
                     resetModal($modal);
                     $modal.addClass('hidden');
                 }
