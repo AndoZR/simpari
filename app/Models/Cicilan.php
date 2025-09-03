@@ -12,8 +12,7 @@ class Cicilan extends Model
 
     protected $fillable = [
         'tagihan_id',
-        'jumlah_bayar',
-        'tanggal_bayar',
+        'total_cicilan_now',
     ];
 
     // Relasi ke tagihan

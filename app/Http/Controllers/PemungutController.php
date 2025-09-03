@@ -219,7 +219,7 @@ class PemungutController extends Controller
     // }
 
     public function bayarTagihan(Request $request)
-    {
+    { // jadi kondisi titan, misal kemarin sinkronize ke API 50000/100000, lalu hari ini kriim data lagi 100000/100000. jadi intinya update bayar tagihan bukan penjumlahan. Maka kalo bayar tagihan yang terupdate == total tagihan == lunas
         try {
             // Validasi cuma riwayat_tagihan aja
             $request->validate([
@@ -234,35 +234,43 @@ class PemungutController extends Controller
                 $nominal = $item["bayar"];
 
                 // Cari tagihan berdasarkan NOP
-                $tagihan = Tagihan::where('nop', $nop)->firstOrFail();
+                $tagihan = Tagihan::where('nop', $nop)->first();
+                $dataCicilan = Cicilan::where('tagihan_id', $tagihan->id)->first();
 
                 // Logika update status
-                if ($request->nominal == $tagihan->jumlah) {
-                    $tagihan->tanggal_lunas = $request->tanggal_lunas ?? now();
-                    $tagihan->status = 'lunas';
-                    $tagihan->sisa_tagihan = 0;
-                } else {
-                    $tagihan->sisa_tagihan = $tagihan->sisa_tagihan - $nominal;
-                    $tagihan->status = 'cicilan';
-                    Cicilan::create([
-                        'tagihan_id' => $tagihan->id,
-                        'jumlah_bayar' => $nominal,
-                        'tanggal_bayar' => now(),
-                    ]);
-                    if ($tagihan->sisa_tagihan <= 0) {
-                        $tagihan->status = 'lunas';
-                        $tagihan->sisa_tagihan = 0;
-                        $tagihan->tanggal_lunas = now();
+                if ($nominal >= $tagihan->jumlah) { // langsung bayar lunas atau cicilan telah lunas
+                    if ($dataCicilan) {
+                        $dataCicilan->update([
+                            'total_cicilan_now' => $nominal
+                        ]);
                     }
-                }
 
-                $tagihan->save();
+                    $tagihan->update([
+                        'tanggal_lunas' => $request->tanggal_lunas ?? now(),
+                        'status' => 'lunas',
+                        'sisa_tagihan' => 0,
+                    ]);
+                } else { // lagi cicilan atau belum lunas
+                    if ($dataCicilan) {
+                        $dataCicilan->update([
+                            'total_cicilan_now' => $nominal
+                        ]);
+                    } else {
+                        Cicilan::create([
+                            'tagihan_id' => $tagihan->id,
+                            'total_cicilan_now' => $nominal,
+                        ]);
+
+                    }
+                    $tagihan->update([
+                        'status' => 'cicilan',
+                        'sisa_tagihan' => $tagihan->jumlah - $nominal,
+                    ]);
+                }
             }
 
-            return response()->json([
-                'message' => 'Bayar tagihan berhasil',
-                // 'tagihan' => $tagihan
-            ]);
+            return ResponseFormatter::success(null, "Berhasil bayar tagihan");
+            
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Terjadi kesalahan saat bayar tagihan',

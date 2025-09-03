@@ -31,8 +31,8 @@ return new class extends Migration
         Schema::create('cicilan_tagihan', function (Blueprint $table) {
             $table->bigIncrements('id'); // PK
             $table->unsignedBigInteger('tagihan_id'); // FK ke tagihan
-            $table->decimal('jumlah_bayar', 15, 2); // nominal cicilan
-            $table->date('tanggal_bayar'); // kapan dibayar
+            $table->decimal('total_cicilan_now', 15, 2); // nominal cicilan
+            $table->timestamps();
 
             // Relasi ke tabel tagihan
             $table->foreign('tagihan_id')

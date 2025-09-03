@@ -74,8 +74,8 @@ class tagihanSeeder extends Seeder
 
                         Cicilan::create([
                             'tagihan_id' => $tagihan->id,
-                            'jumlah_bayar' => $nominal,
-                            'tanggal_bayar' => Carbon::now()->subDays(rand(0, 30)),
+                            'total_cicilan_now' => $nominal,
+                            // 'tanggal_bayar' => Carbon::now()->subDays(rand(0, 30)),
                         ]);
                     }
 
@@ -86,8 +86,8 @@ class tagihanSeeder extends Seeder
                     // bayar langsung penuh
                     Cicilan::create([
                         'tagihan_id' => $tagihan->id,
-                        'jumlah_bayar' => $jumlah,
-                        'tanggal_bayar' => Carbon::now()->subDays(rand(1, 30)),
+                        'total_cicilan_now' => $jumlah,
+                        // 'tanggal_bayar' => Carbon::now()->subDays(rand(1, 30)),
                     ]);
 
                     $tagihan->sisa_tagihan = 0;
