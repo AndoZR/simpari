@@ -96,9 +96,11 @@ class PemungutController extends Controller
     public function showTagihan()
     {
         try {
-            $dataStatus = ['belum', 'cicilan', 'didesa', 'dipemungut', 'lunas'];
-            // Ambil pemungut beserta relasi masyarakat + tagihan
-            $pemungut = Pemungut::with(['user', 'masyarakat.tagihan'])->firstOrFail();
+            $user = Auth::user();
+            
+            $pemungut = Pemungut::where('id', $user->id)
+                ->with(['user', 'masyarakat.tagihan'])
+                ->first();
 
             // Inisialisasi total
             $target_nominal = 0;
