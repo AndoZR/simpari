@@ -237,6 +237,10 @@ class PemungutController extends Controller
 
                 // Cari tagihan berdasarkan NOP
                 $tagihan = Tagihan::where('nop', $nop)->first();
+                if (!$tagihan) {
+                    continue; // kalau tagihan nggak ada, skip loop ini
+                }
+                
                 $dataCicilan = Cicilan::where('tagihan_id', $tagihan->id)->first();
 
                 // Logika update status
