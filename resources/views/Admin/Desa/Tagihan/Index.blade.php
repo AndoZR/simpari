@@ -36,10 +36,13 @@
             <thead class="bg-gray-800 text-white">
                 <tr>
                     <th class="text-left py-3 px-4 uppercase font-semibold text-sm">No.</th>
-                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Nama</th>
-                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">NIK</th>
-                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Tagihan (Rp)</th>
+                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">NOP</th>
+                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Total Tagihan (Rp)</th>
+                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Sisa Tagihan (Rp)</th>
+                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Uang Di Pemungut (Rp)</th>
+                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Uang Di Desa (Rp)</th>
                     <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Status</th>
+                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Aksi</th>
                 </tr>
             </thead>
             <tbody class="text-gray-700">
@@ -106,7 +109,7 @@ $(document).ready(function() {
             },
             {
                 targets: 1,
-                data: 'masyarakat.nama',
+                data: 'nop',
                 className: 'dt-center text-center align-middle',
                 render: function(data, type, row, meta) {
                     return data;
@@ -114,14 +117,6 @@ $(document).ready(function() {
             },
             {
                 targets: 2,
-                data: 'masyarakat.user.nik',
-                className: 'dt-center text-center align-middle',
-                render: function(data, type, row, meta) {
-                    return data;
-                }
-            },
-            {
-                targets: 3,
                 data: 'jumlah',
                 className: 'dt-center text-center align-middle',
                 render: function(data, type, row, meta) {
@@ -129,35 +124,78 @@ $(document).ready(function() {
                 }
             },
             {
+                targets: 3,
+                data: 'sisa_tagihan',
+                className: 'dt-center text-center align-middle',
+                render: function(data, type, row, meta) {
+                    return data;
+                }
+            },
+            {
                 targets: 4,
+                data: 'uang_dipemungut',
+                className: 'dt-center text-center align-middle',
+                render: function(data, type, row, meta) {
+                    return data;
+                }
+            },
+            {
+                targets: 5,
+                data: 'uang_didesa',
+                className: 'dt-center text-center align-middle',
+                render: function(data, type, row, meta) {
+                    return data;
+                }
+            },
+            {
+                targets: 6,
+                data: 'status',
+                className: 'dt-center text-center align-middle',
+                render: function(data, type, row, meta) {
+                    if (data === 'belum') {
+                        return '<span class="px-2 py-1 rounded-full text-white text-xs font-semibold bg-red-500">Belum Bayar</span>';
+                    } else if (data === 'cicilan') {
+                        return '<span class="px-2 py-1 rounded-full text-white text-xs font-semibold bg-yellow-500">Di Pemungut</span>';
+                    } else if (data === 'dipemungut') {
+                        return '<span class="px-2 py-1 rounded-full text-white text-xs font-semibold bg-blue-500">Di Pemungut</span>';
+                    } else if (data === 'didesa') {
+                        return '<span class="px-2 py-1 rounded-full text-white text-xs font-semibold bg-green-500">Di Desa</span>';
+                    } else if (data === 'lunas') {
+                        return '<span class="px-2 py-1 rounded-full text-white text-xs font-semibold bg-yellow-500">Di Pemungut</span>';
+                    }
+                    return data;
+                }
+            },
+            {
+                targets: 7,
                 data: 'status',
                 className: 'dt-center text-center align-middle',
                 render: function(data, type, row, meta) {
                     let buttonClass = "";
-                    let buttonText = data; // data = status
+                    let buttonText = "Setor"; // data = status
                     let disabledAttr = "";
 
                     switch (data) {
                         case "cicilan":
-                            buttonClass = "bg-red-600";
-                            disabledAttr = "disabled";
-                            break;
-                        case "belum":
-                            buttonClass = "bg-red-600";
-                            disabledAttr = "disabled";
+                            buttonClass = "btn-update-cicilan bg-yellow-600";
                             break;
                         case "lunas":
-                            buttonClass = "btn-update-lunas bg-purple-600 hover:bg-purple-700"; // aktif masih ada hover
+                            buttonClass = "btn-update-lunas bg-yellow-600";
+                            break;
+                        case "belum":
+                            buttonClass = "bg-gray-600 opacity-50 cursor-not-allowed";
+                            disabledAttr = "disabled";
                             break;
                         case "didesa":
-                            buttonClass = "btn-update-desa bg-green-600";
+                            buttonClass = "btn-update-desa bg-green-600 opacity-50 cursor-not-allowed";
+                            disabledAttr = "disabled";
                             break;
-                        case "selesai":
-                            buttonClass = "bg-green-600";
+                        case "dikecamatan":
+                            buttonClass = "bg-gray-600 opacity-50 cursor-not-allowed";
                             disabledAttr = "disabled";
                             break;
                         default:
-                            buttonClass = "bg-red-600";
+                            buttonClass = "bg-gray-600 opacity-50 cursor-not-allowed";
                             disabledAttr = "disabled";
                     }
 
@@ -174,12 +212,22 @@ $(document).ready(function() {
 
                     return $button;
                 }
-            }
+            },
+            {
+                targets: 8,
+                data: 'masyarakat.pemungut.nama',
+                visible: false, // kolom ada di dataset tapi disembunyikan
+            },
+            {
+                targets: 8,
+                data: 'masyarakat.pemungut.user.nik',
+                visible: false, // kolom ada di dataset tapi disembunyikan
+            },
         ],
     });
 
     // Submit Update Status
-    $(document).on('click', '.btn-update-lunas, .btn-update-desa', function () {
+    $(document).on('click', '.btn-update-lunas, .btn-update-cicilan, .btn-update-desa', function () {
         let id = $(this).data('id');
         let status = $(this).data('status');
         let newStatus = "";
@@ -187,13 +235,15 @@ $(document).ready(function() {
         // Tentukan status baru berdasarkan class tombol
         if ($(this).hasClass('btn-update-lunas')) {
             newStatus = "didesa";
+        } else if ($(this).hasClass('btn-update-cicilan')) {
+            newStatus = "didesa";
         } else if ($(this).hasClass('btn-update-desa')) {
             newStatus = "lunas";
         }
 
         Swal.fire({
             title: 'Update Status?',
-            text: `Status sekarang: ${status}`,
+            text: `Perhatikan tidak bisa di ubah kembali!`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Ya, Update',

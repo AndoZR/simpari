@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Desa extends Model
+class AdminKecamatan extends Model
 {
-    protected $table = 'villages';
+    //
 }

@@ -2,9 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\TagihanController;
-use App\Http\Controllers\ManagePemungutController;
+use App\Http\Controllers\Admin\Desa\TagihanController;
+use App\Http\Controllers\Admin\Desa\ManagePemungutController;
 use App\Http\Controllers\Admin\Kecamatan\KecamatanTagihanController;
+
+Route::get('/', function () {
+    return view('Auth.Login');
+})->name('default');
 
 Route::view('/login', 'Auth.Login')->name('login');
 Route::view('/register', 'Auth.Register')->name('register');

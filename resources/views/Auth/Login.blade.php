@@ -39,7 +39,7 @@
                             </button>
                             <p class="mt-6 text-xs text-gray-600 text-center">
                                 <a href="{{ route("register") }}" class="border-b border-gray-500 border-dotted">
-                                    Sudah Memiliki Akun? Klik Di Sini
+                                    Belum Memiliki Akun? Klik Di Sini
                                 </a>
                             </p>
                         </form>

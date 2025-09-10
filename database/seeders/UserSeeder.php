@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\AdminDesa;
 use App\Models\User;
 use App\Models\Masyarakat;
 use App\Models\Pemungut;
@@ -70,16 +71,48 @@ class UserSeeder extends Seeder
             ]);
         }
 
+
+        // SESSION ADMIN DESA SEED
+        $villageIds = [
+            '3511080001',
+            '3511080002',
+            '3511080004',
+            '3511080005',
+            '3511080006',
+            '3511080007',
+            '3511080008',
+            '3511080009',
+            '3511080010',
+            '3511080011',
+            '3511080012',
+        ];
+
+        foreach ($villageIds as $index => $villageId) {
+            // bikin user
+            $user = User::create([
+                'nik' => '351101010101' . str_pad($index+1, 4, '0', STR_PAD_LEFT), // unik tiap user
+                'password' => Hash::make('123123123'),
+                'role' => 'admin_desa',
+            ]);
+
+            // bikin admin desa relasi ke user
+            AdminDesa::create([
+                'user_id' => $user->id, // relasi 1-1
+                'tagihan' => 1000000000,
+                'sisa_tagihan' => 500000000,
+                'telepon' => '08' . rand(1000000000, 9999999999),
+                'village_id' => $villageId,
+            ]);
+        }
+
+
+        // SESSION ADMIN KECAMATAN
         User::create([
             'nik' => '3201010101011113',
             'password' => Hash::make('123123123'),
             'role' => 'admin_kecamatan',
         ]);
 
-        User::create([
-            'nik' => '3201010101011114',
-            'password' => Hash::make('123123123'),
-            'role' => 'admin_desa',
-        ]);
+
     }
 }

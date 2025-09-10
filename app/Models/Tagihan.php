@@ -16,6 +16,8 @@ class Tagihan extends Model
         'jumlah',
         'status',
         'sisa_tagihan',
+        'uang_dipemungut',
+        'uang_didesa',
         'keterangan',
         'tanggal_tagihan',
         'tanggal_lunas',

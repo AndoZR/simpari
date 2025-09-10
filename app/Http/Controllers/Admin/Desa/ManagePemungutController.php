@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin\Desa;
 
 use Exception;
 use App\Models\Desa;
@@ -10,6 +10,7 @@ use App\Models\Masyarakat;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
 class ManagePemungutController extends Controller
@@ -21,7 +22,7 @@ class ManagePemungutController extends Controller
 
             return ResponseFormatter::success($data, 'Data Pemungut Berhasil Diambil');
         }
-        return view('Admin.ManagePemungut.Index');
+        return view('Admin.Desa.ManagePemungut.Index');
     }
 
     public function tambahPemungut(Request $request)
