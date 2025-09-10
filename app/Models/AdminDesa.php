@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Desa;
 use Illuminate\Database\Eloquent\Model;
 
 class AdminDesa extends Model
@@ -11,6 +12,12 @@ class AdminDesa extends Model
     protected $fillable = [
         'telepon',
         'tagihan',
-        'sisa_tagihan'
+        'sisa_tagihan',
+        'diterima_kec'
     ];
+
+    public function desa()
+    {
+        return $this->belongsTo(Desa::class, 'village_id');
+    }
 }

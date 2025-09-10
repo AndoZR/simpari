@@ -12,7 +12,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->decimal('tagihan', 15); // Total tagihan
-            $table->decimal('sisa_tagihan', 15); // Sisa setelah dicicil
+            $table->decimal('sisa_tagihan', 15);
+            $table->decimal('diterima_kec', 15);
             $table->string('telepon',13)->unique()->nullable();
             $table->char('village_id',10)->nullable();
             $table->foreign('village_id')->references('id')->on('villages')->onDelete('cascade');

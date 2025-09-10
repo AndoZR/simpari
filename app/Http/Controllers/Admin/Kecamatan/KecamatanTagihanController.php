@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Kecamatan;
 
 use App\Models\Tagihan;
+use App\Models\AdminDesa;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
@@ -12,7 +13,7 @@ class KecamatanTagihanController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()){
-            $tagihan = Tagihan::with('masyarakat.user')->get();
+            $tagihan = AdminDesa::with('desa')->get();
 
             return ResponseFormatter::success($tagihan,"Berhasil mengambil data tagihan");
         }
@@ -22,14 +23,14 @@ class KecamatanTagihanController extends Controller
     public function updateStatus(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:tagihan,id',
-            'status' => 'required|'
+            'id' => 'required',
+            'nominal' => 'required'
         ]);
 
-        $tagihan = Tagihan::find($request->id);
-        $tagihan->status = $request->status;
-        $tagihan->save();
+        $desa = AdminDesa::find($request->id);
+        $desa->diterima_kec = $desa->diterima_kec + $request->nominal;
+        $desa->save();
 
-        return ResponseFormatter::success($tagihan, "Status tagihan berhasil diperbarui");
+        return ResponseFormatter::success($desa, "Status tagihan berhasil diperbarui");
     }
 }

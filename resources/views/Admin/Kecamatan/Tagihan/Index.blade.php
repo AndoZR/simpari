@@ -36,10 +36,12 @@
             <thead class="bg-gray-800 text-white">
                 <tr>
                     <th class="text-left py-3 px-4 uppercase font-semibold text-sm">No.</th>
-                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Nama</th>
-                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">NIK</th>
-                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Tagihan (Rp)</th>
-                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Status</th>
+                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Desa</th>
+                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Jumlah Tagihan</th>
+                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Diterima Desa</th>
+                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Diterima Kecamatan</th>
+                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Capaian Tagihan</th>
+                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Input Setor</th>
                 </tr>
             </thead>
             <tbody class="text-gray-700">
@@ -75,26 +77,6 @@ $(document).ready(function() {
             url: url,
             type: "GET"
         },
-        layout: {
-            topStart: {
-                buttons: [
-                    {
-                        text: '<i class="fas fa-file-export mr-2"></i> Export Data',
-                        className: 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md',
-                        action: function () {
-                            alert("Export Data diklik!");
-                        }
-                    },
-                    {
-                        text: '<i class="fas fa-file-import mr-2"></i> Import Data',
-                        className: 'bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md',
-                        action: function () {
-                            alert("Import Data diklik!");
-                        }
-                    }
-                ]
-            }
-        },
         columnDefs: [
             {
                 targets: 0,
@@ -106,7 +88,7 @@ $(document).ready(function() {
             },
             {
                 targets: 1,
-                data: 'masyarakat.nama',
+                data: 'desa.name',
                 className: 'dt-center text-center align-middle',
                 render: function(data, type, row, meta) {
                     return data;
@@ -114,7 +96,7 @@ $(document).ready(function() {
             },
             {
                 targets: 2,
-                data: 'masyarakat.user.nik',
+                data: 'tagihan',
                 className: 'dt-center text-center align-middle',
                 render: function(data, type, row, meta) {
                     return data;
@@ -122,78 +104,65 @@ $(document).ready(function() {
             },
             {
                 targets: 3,
-                data: 'jumlah',
+                data: null,
+                className: 'dt-center text-center align-middle',
+                render: function(data, type, row, meta) {
+                    return data.tagihan - data.sisa_tagihan;
+                }
+            },
+            {
+                targets: 4,
+                data: 'diterima_kec',
                 className: 'dt-center text-center align-middle',
                 render: function(data, type, row, meta) {
                     return data;
                 }
             },
             {
-                targets: 4,
-                data: 'status',
+                targets: 5,
+                data: null,
                 className: 'dt-center text-center align-middle',
                 render: function(data, type, row, meta) {
-                    let buttonClass = "";
-                    let buttonText = data; // data = status
-                    let disabledAttr = "";
-
-                    switch (data) {
-                        case "cicilan":
-                            buttonClass = "bg-gray-600";
-                            disabledAttr = "disabled";
-                            break;
-                        case "belum":
-                            buttonClass = "bg-gray-600";
-                            disabledAttr = "disabled";
-                            break;
-                        case "lunas":
-                            buttonClass = "bg-gray-600"; // aktif masih ada hover
-                            disabledAttr = "disabled";
-                            break;
-                        case "didesa":
-                            buttonClass = "btn-update-didesa bg-purple-600";
-                            break;
-                        case "selesai":
-                            buttonClass = "btn-update-selesai bg-green-600";
-                            break;
-                        default:
-                            buttonClass = "bg-gray-600";
-                            disabledAttr = "disabled";
+                    let capaian = 0;
+                    if (data.tagihan > 0) {
+                        capaian = (data.diterima_kec / data.tagihan) * 100;
                     }
 
-                    let $button = `
-                        <button class="inline-flex items-center gap-2 px-4 py-2 ${buttonClass} text-white text-sm font-medium rounded-lg shadow-md transition-colors duration-200 
-                            disabled:opacity-50 disabled:cursor-not-allowed"
-                            data-id="${row.id}" 
-                            data-status="${data}" 
-                            title="Update Status"
-                            ${disabledAttr}>
-                            ${buttonText} <i class="fas fa-edit"></i>
-                        </button>
-                    `;
+                    let colorClass = (capaian >= 100) ? 'bg-green-500' : 'bg-blue-500';
 
-                    return $button;
+                    return '<span class="px-2 py-1 rounded-full text-white text-xs font-semibold ' 
+                        + colorClass + '">' + capaian.toFixed(1) + '%</span>';
+                }
+            },
+            {
+                targets: 6,
+                data: null,
+                className: 'dt-center text-center align-middle',
+                render: function(data, type, row, meta) {
+                    return `
+                        <div class="flex flex-col items-center space-y-2">
+                            <input type="number" 
+                                class="input-nominal w-28 px-2 py-1 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" 
+                                placeholder="Nominal" />
+                            <button class="btn-setor bg-blue-500 hover:bg-green-600 text-white text-xs font-semibold px-3 py-1 rounded-md" data-id="${row.id}"">
+                                Setor
+                            </button>
+                        </div>
+                    `;
                 }
             }
         ],
     });
 
-    // Submit Update Status
-    $(document).on('click', '.btn-update-didesa, .btn-update-selesai', function () {
+    // Submit
+    $(document).on('click', '.btn-setor', function () {
         let id = $(this).data('id');
-        let status = $(this).data('status');
-        let newStatus = "";
-
-        // Tentukan status baru berdasarkan class tombol
-        if ($(this).hasClass('btn-update-didesa')) {
-            newStatus = "selesai";
-        } else if ($(this).hasClass('btn-update-selesai')) {
-            newStatus = "didesa";
-        }
+        // cari input di dalam row yang sama
+        let nominal = $(this).closest('tr').find('.input-nominal').val();
 
         Swal.fire({
-            title: 'Update Status?',
-            text: `Status sekarang: ${status}`,
+            title: 'Setor Uang Desa?',
+            text: `Silahkan Masukkan nominal uang setor!`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Ya, Update',
@@ -207,7 +176,7 @@ $(document).ready(function() {
                     data: {
                         _token: '{{ csrf_token() }}',
                         id: id,
-                        status: newStatus
+                        nominal: nominal,
                     },
                     success: function (response) {
                         Swal.fire({

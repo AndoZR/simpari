@@ -100,6 +100,7 @@ class UserSeeder extends Seeder
                 'user_id' => $user->id, // relasi 1-1
                 'tagihan' => 1000000000,
                 'sisa_tagihan' => 500000000,
+                'diterima_kec' => 500000000,
                 'telepon' => '08' . rand(1000000000, 9999999999),
                 'village_id' => $villageId,
             ]);
@@ -108,7 +109,7 @@ class UserSeeder extends Seeder
 
         // SESSION ADMIN KECAMATAN
         User::create([
-            'nik' => '3201010101011113',
+            'nik' => '3511010101019991',
             'password' => Hash::make('123123123'),
             'role' => 'admin_kecamatan',
         ]);
