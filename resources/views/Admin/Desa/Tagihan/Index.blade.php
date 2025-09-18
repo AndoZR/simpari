@@ -187,7 +187,7 @@ $(document).ready(function() {
                             disabledAttr = "disabled";
                             break;
                         case "didesa":
-                            buttonClass = "btn-update-desa bg-green-600 opacity-50 cursor-not-allowed";
+                            buttonClass = "btn-update-desa bg-gray-600 opacity-50 cursor-not-allowed";
                             disabledAttr = "disabled";
                             break;
                         case "dikecamatan":
