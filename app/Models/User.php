@@ -34,6 +34,11 @@ class User extends Authenticatable
         return $this->hasOne(Masyarakat::class);
     }
 
+    public function adminDesa()
+    {
+        return $this->hasOne(AdminDesa::class);
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

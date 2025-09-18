@@ -21,6 +21,7 @@ class Tagihan extends Model
         'keterangan',
         'tanggal_tagihan',
         'tanggal_lunas',
+        'masyarakat_id',
     ];
 
     protected $casts = [

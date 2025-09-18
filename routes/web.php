@@ -37,6 +37,7 @@ Route::middleware(['auth', 'role:admin_desa'])->group(function () {
     
         Route::get('/tagihan', [TagihanController::class, 'index'])->name('tagihan.index');
         Route::post('/tagihan/update-status', [TagihanController::class, 'updateStatus'])->name('tagihan.updateStatus');
+        Route::post('tagihan/import', [TagihanController::class, 'import'])->name('tagihan.import');
     });
 });
 

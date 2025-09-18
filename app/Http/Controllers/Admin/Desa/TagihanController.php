@@ -5,6 +5,8 @@ use App\Models\Tagihan;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
+use App\Imports\TagihanImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TagihanController extends Controller
 {
@@ -32,5 +34,16 @@ class TagihanController extends Controller
         $tagihan->save();
 
         return ResponseFormatter::success($tagihan, "Status tagihan berhasil diperbarui");
+    }
+
+    public function import(Request $request)
+    {
+        // dd("Test");
+        // $request->validate([
+        //     'file' => 'required|mimes:xls,xlsx'
+        // ]);
+
+        Excel::import(new TagihanImport, $request->file('file'));
+        return ResponseFormatter::success(null, "Import excel berhasil");
     }
 }

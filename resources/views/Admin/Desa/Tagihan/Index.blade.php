@@ -31,6 +31,11 @@
     <p class="text-xl pb-3 flex items-center">
         <i class="fas fa-list mr-3"></i> Table
     </p>
+    <form id="importForm" action="{{ route('desa.tagihan.import') }}" method="POST" enctype="multipart/form-data" style="display:none;">
+        @csrf
+        <input type="file" id="importFile" name="file" required>
+    </form>
+
     <div class="bg-white overflow-auto">
         <table class="min-w-full bg-white" id="table-tagihan">
             <thead class="bg-gray-800 text-white">
@@ -92,9 +97,11 @@ $(document).ready(function() {
                         text: '<i class="fas fa-file-import mr-2"></i> Import Data',
                         className: 'bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md',
                         action: function () {
-                            alert("Import Data diklik!");
+                            // Klik otomatis input file
+                            document.getElementById('importFile').click();
                         }
                     }
+
                 ]
             }
         },
@@ -281,6 +288,11 @@ $(document).ready(function() {
         });
     });
 
+    document.getElementById('importFile').addEventListener('change', function() {
+        if (this.files.length > 0) {
+            document.getElementById('importForm').submit();
+        }
+    });
 });
 </script>
 @endsection

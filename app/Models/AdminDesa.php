@@ -20,4 +20,9 @@ class AdminDesa extends Model
     {
         return $this->belongsTo(Desa::class, 'village_id');
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

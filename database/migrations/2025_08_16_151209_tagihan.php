@@ -14,19 +14,19 @@ return new class extends Migration
             // FK ke users.id (role masyarakat)
             $table->unsignedBigInteger('masyarakat_id');
             $table->string('nop',30)->unique();
-            $table->decimal('jumlah', 15); // Total tagihan
-            $table->decimal('sisa_tagihan', 15); // Sisa setelah dicicil
-            $table->decimal('uang_dipemungut', 15);
-            $table->decimal('uang_didesa', 15);
+            $table->decimal('jumlah', 15)->default(0); // Total tagihan
+            $table->decimal('sisa_tagihan', 15)->default(0); // Sisa setelah dicicil
+            $table->decimal('uang_dipemungut', 15)->default(0);
+            $table->decimal('uang_didesa', 15)->default(0);
             $table->enum('status', ['belum', 'cicilan', 'lunas', 'didesa', 'dikecamatan'])->default('belum');
             $table->text('keterangan')->nullable();
 
-            $table->date('tanggal_tagihan'); 
+            $table->date('tanggal_tagihan')->nullable(); 
             $table->date('tanggal_lunas')->nullable(); // opsional
 
             // Relasi ke tabel users
             $table->foreign('masyarakat_id')
-                ->references('id')->on('users')
+                ->references('id')->on('masyarakat')
                 ->onDelete('cascade');
         });
 

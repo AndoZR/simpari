@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('telepon',13)->unique()->nullable();
             $table->string('alamat');
             $table->boolean('status_lunas')->default(false); // ini next setelah uji coba 11 sep happus aja gak penting
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->foreignId('pemungut_id')->nullable()->constrained('pemungut')->nullOnDelete();
             $table->char('village_id',10)->nullable();
             $table->foreign('village_id')->references('id')->on('villages')->onDelete('cascade');
