@@ -3,10 +3,12 @@ namespace App\Http\Controllers\Admin\Desa;
 
 use App\Models\Tagihan;
 use Illuminate\Http\Request;
+use App\Exports\TagihanExport;
+use App\Imports\TagihanImport;
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
-use App\Imports\TagihanImport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Validator;
 
 class TagihanController extends Controller
 {
@@ -24,12 +26,11 @@ class TagihanController extends Controller
     {
         $request->validate([
             'id' => 'required|exists:tagihan,id',
-            'status' => 'required|'
         ]);
 
         $tagihan = Tagihan::find($request->id);
-        $tagihan->status = $request->status;
-        $tagihan->uang_didesa = $tagihan->uang_dipemungut;
+        $tagihan->status = "didesa";
+        $tagihan->uang_didesa += $tagihan->uang_dipemungut;
         $tagihan->uang_dipemungut = 0;
         $tagihan->save();
 
@@ -38,12 +39,30 @@ class TagihanController extends Controller
 
     public function import(Request $request)
     {
-        // dd("Test");
-        // $request->validate([
-        //     'file' => 'required|mimes:xls,xlsx'
-        // ]);
+        $validator = Validator::make($request->all(), [
+            'file' => 'required|mimes:xls,xlsx'
+        ]);
 
-        Excel::import(new TagihanImport, $request->file('file'));
-        return ResponseFormatter::success(null, "Import excel berhasil");
+        if ($validator->fails()) {
+            return ResponseFormatter::error(null,$validator->errors(),422);
+        }
+        
+        try {
+
+            Excel::import(new TagihanImport, $request->file('file'));
+            return ResponseFormatter::success(null, "Import excel berhasil");
+        } catch (\Exception $e) {
+            return ResponseFormatter::error($e->getMessage(), "Import excel gagal", 500);
+        }
+    }
+
+    public function export(Request $request)
+    {
+        try {
+            return Excel::download(new TagihanExport, 'Tagihan.xlsx');
+            // return ResponseFormatter::success(null, "Export excel berhasil");
+        } catch (\Exception $e) {
+            return ResponseFormatter::error($e->getMessage(), "Import excel gagal", 500);
+        }
     }
 }

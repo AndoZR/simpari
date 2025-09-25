@@ -14,10 +14,10 @@ return new class extends Migration
             // FK ke users.id (role masyarakat)
             $table->unsignedBigInteger('masyarakat_id');
             $table->string('nop',30)->unique();
-            $table->decimal('jumlah', 15)->default(0); // Total tagihan
-            $table->decimal('sisa_tagihan', 15)->default(0); // Sisa setelah dicicil
-            $table->decimal('uang_dipemungut', 15)->default(0);
-            $table->decimal('uang_didesa', 15)->default(0);
+            $table->bigInteger('jumlah')->default(0); // Total tagihan
+            $table->bigInteger('sisa_tagihan')->default(0); // Sisa setelah dicicil
+            $table->bigInteger('uang_dipemungut')->default(0);
+            $table->bigInteger('uang_didesa')->default(0);
             $table->enum('status', ['belum', 'cicilan', 'lunas', 'didesa', 'dikecamatan'])->default('belum');
             $table->text('keterangan')->nullable();
 
@@ -33,7 +33,7 @@ return new class extends Migration
         Schema::create('cicilan_tagihan', function (Blueprint $table) {
             $table->bigIncrements('id'); // PK
             $table->unsignedBigInteger('tagihan_id'); // FK ke tagihan
-            $table->decimal('total_cicilan_now', 15, 2); // nominal cicilan
+            $table->bigInteger('total_cicilan_now'); // nominal cicilan
             $table->timestamps();
 
             // Relasi ke tabel tagihan

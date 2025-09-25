@@ -56,7 +56,7 @@ public function run(): void
                 'sisa_tagihan' => $sisa,
                 'uang_dipemungut' => 0, // default
                 'uang_didesa' => 0,     // default
-                'keterangan' => 'Tagihan pajak ' . ($i + 1),
+                'keterangan' => 'Tagihan pajak ' . now()->format('F Y'),
                 'tanggal_tagihan' => Carbon::now()->subDays(rand(0, 60)),
                 'tanggal_lunas' => null,
                 'nop' => $nopFormatted,

@@ -90,7 +90,7 @@ $(document).ready(function() {
                         text: '<i class="fas fa-file-export mr-2"></i> Export Data',
                         className: 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md',
                         action: function () {
-                            alert("Export Data diklik!");
+                            window.location.href = "{{ route('desa.tagihan.export') }}";
                         }
                     },
                     {
@@ -210,7 +210,6 @@ $(document).ready(function() {
                         <button class="inline-flex items-center gap-2 px-4 py-2 ${buttonClass} text-white text-sm font-medium rounded-lg shadow-md transition-colors duration-200 
                             disabled:opacity-50 disabled:cursor-not-allowed"
                             data-id="${row.id}" 
-                            data-status="${data}" 
                             title="Update Status"
                             ${disabledAttr}>
                             ${buttonText} <i class="fas fa-edit"></i>
@@ -236,17 +235,6 @@ $(document).ready(function() {
     // Submit Update Status
     $(document).on('click', '.btn-update-lunas, .btn-update-cicilan, .btn-update-desa', function () {
         let id = $(this).data('id');
-        let status = $(this).data('status');
-        let newStatus = "";
-
-        // Tentukan status baru berdasarkan class tombol
-        if ($(this).hasClass('btn-update-lunas')) {
-            newStatus = "didesa";
-        } else if ($(this).hasClass('btn-update-cicilan')) {
-            newStatus = "didesa";
-        } else if ($(this).hasClass('btn-update-desa')) {
-            newStatus = "lunas";
-        }
 
         Swal.fire({
             title: 'Update Status?',
@@ -264,7 +252,6 @@ $(document).ready(function() {
                     data: {
                         _token: '{{ csrf_token() }}',
                         id: id,
-                        status: newStatus
                     },
                     success: function (response) {
                         Swal.fire({
@@ -290,9 +277,55 @@ $(document).ready(function() {
 
     document.getElementById('importFile').addEventListener('change', function() {
         if (this.files.length > 0) {
-            document.getElementById('importForm').submit();
+            let formData = new FormData(document.getElementById('importForm'));
+
+            fetch("{{ route('desa.tagihan.import') }}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value
+                }
+            })
+            .then(async response => {
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    throw new Error("Respon server tidak valid");
+                }
+
+                if (!response.ok) {
+                    // ambil pesan dari controller (message atau errors)
+                    let errorMessage = data.message || 
+                        (data.errors ? Object.values(data.errors).join(", ") : "Gagal mengimport data");
+                    throw new Error(errorMessage);
+                }
+
+                return data;
+            })
+            .then(data => {
+                Swal.fire({
+                    icon: "success",
+                    title: "Berhasil",
+                    text: data.message || "Data berhasil diimport!"
+                });
+                tableTagihan.ajax.reload();
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: error.message || "Terjadi kesalahan saat import!"
+                });
+            })
+            .finally(() => {
+                // reset input agar bisa klik file yang sama lagi
+                document.getElementById('importFile').value = "";
+            });
         }
     });
+
+
 });
 </script>
 @endsection
