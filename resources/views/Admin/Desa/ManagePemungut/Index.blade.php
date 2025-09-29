@@ -40,7 +40,7 @@
         <!-- Header -->
         <div class="flex justify-between items-center border-b pb-3">
             <h5 class="text-xl font-semibold">Akun Pemungut</h5>
-            <button class="text-gray-500 hover:text-gray-700 text-2xl leading-none">
+            <button data-action="close" class="text-gray-500 hover:text-gray-700 text-2xl leading-none">
                 ✕
             </button>
         </div>
@@ -105,7 +105,7 @@
 
             <!-- Footer -->
             <div class="flex justify-end gap-2 pt-4 border-t">
-                <button type="button"
+                <button data-action="close" type="button"
                     class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">
                     Batal
                 </button>
@@ -127,38 +127,12 @@
 
         <!-- Header -->
         <div class="flex justify-between items-center p-4 flex-shrink-0 bg-white shadow-md rounded-t-2xl z-10">
-            <h5 class="text-xl font-semibold text-gray-800">Atur Plotting</h5>
-            <button class="text-gray-500 hover:text-gray-700 text-2xl leading-none">✕</button>
+            <h5 class="text-xl font-semibold text-gray-800">Atur Plotting Pemungut</h5>
+            <button class="text-gray-500 hover:text-gray-700 text-2xl leading-none" data-action="close">✕</button>
         </div>
 
         <!-- Konten scrollable -->
         <div class="p-6 overflow-y-auto flex-1 bg-gray-50 shadow-inner" style="max-height: calc(80vh - 120px);">
-
-            <!-- Form -->
-            <form id="form-plotting" class="space-y-5 mb-6 bg-white p-4 rounded-lg shadow-sm">
-                @csrf
-                <div>
-                    <label for="desa" class="block text-sm font-medium text-gray-700 mb-2">
-                        Desa <span class="text-red-500">*</span>
-                    </label>
-                    <select name="desa" id="desa" class="w-full rounded-lg border border-gray-300 text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition">
-                        <option value="">-- Pilih Desa --</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label for="masyarakat" class="block text-sm font-medium text-gray-700 mb-2">
-                        Masyarakat <span class="text-red-500">*</span>
-                    </label>
-                    <select name="masyarakat[]" id="masyarakat" multiple class="w-full rounded-lg border border-gray-300 text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition">
-                        <!-- options via AJAX -->
-                    </select>
-                </div>
-
-                <button type="submit" class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow">
-                    Tambah Plotting
-                </button>
-            </form>
 
             <!-- Table -->
             <p class="text-xl pb-3 flex items-center font-semibold border-b border-gray-200 text-gray-700 shadow-sm">
@@ -171,7 +145,7 @@
                         <th class="text-left py-3 px-4 uppercase font-semibold text-sm border-r border-gray-700">No.</th>
                         <th class="text-left py-3 px-4 uppercase font-semibold text-sm border-r border-gray-700">Nama</th>
                         <th class="text-left py-3 px-4 uppercase font-semibold text-sm border-r border-gray-700">NIK</th>
-                        <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Aksi</th>
+                        <th class="text-left uppercase font-semibold text-sm"><input type="checkbox" id="checkAll" class="form-checkbox text-red-600">Check All</th>
                     </tr>
                 </thead>
                 <tbody class="text-gray-700 divide-y divide-gray-200">
@@ -182,7 +156,7 @@
 
         <!-- Footer -->
         <div class="flex justify-end gap-2 p-4 border-t flex-shrink-0 bg-white shadow-inner rounded-b-2xl">
-            <button type="button" class="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">
+            <button data-action="close" type="button" class="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">
                 Selesai
             </button>
         </div>
@@ -448,7 +422,7 @@
                 paging: true,
                 lengthChange: false,
                 searching: true,
-                ordering: true,
+                ordering: false,
                 info: true,
                 autoWidth: true,
                 responsive: true,
@@ -487,201 +461,100 @@
                         data: null,
                         className: 'text-center align-middle',
                         render: function(data, type, row, meta) {
-                            $button = `
-                                <button class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-md transition-colors duration-200 btn-hapus-plotting" 
-                                title="Hapus Data">
-                                Hapus
-                                </button>
+                            let checked = row.is_plotted ? 'checked' : '';
+                            return `
+                                <input type="checkbox" class="row-check form-checkbox h-5 w-5 text-red-600" ${checked}>
                             `;
-
-                            return $button;
                         }
-                    },
+                    }
                 ],
+            });
+
+            $('#checkAll').on('click', function() {
+                let isChecked = $(this).is(':checked');
+
+                // update semua checkbox UI
+                $('#table-plotting .row-check').prop('checked', isChecked);
+
+                // ambil semua id masyarakat dari datatable
+                let ids = [];
+                tablePlotting.rows().every(function() {
+                    ids.push(this.data().id);
+                });
+
+                // kirim ke server
+                $.ajax({
+                    url: "{{ route('desa.managePemungut.toggleAll') }}",
+                    type: 'POST',
+                    data: {
+                        masyarakat_ids: ids,
+                        pemungut_id: idPemungut,
+                        checked: isChecked ? 1 : 0,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(res) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: 'Semua data berhasil diperbarui!'
+                        });
+                        tablePlotting.ajax.reload();
+                    },
+                    error: function(err) {
+                        console.error('Gagal update massal', err);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops!',
+                            text: 'Gagal update data massal!'
+                        });
+                        tablePlotting.ajax.reload();
+                    }
+                });
+            });
+
+
+            $('#table-plotting tbody').on('change', '.row-check', function() {
+                let row = tablePlotting.row($(this).closest('tr')).data();
+                let isChecked = $(this).is(':checked');
+
+                $.ajax({
+                    url: "{{ route('desa.managePemungut.toggle') }}",
+                    type: 'POST',
+                    data: {
+                        masyarakat_id: row.id,
+                        pemungut_id: idPemungut, // ambil dari variabel JS yg simpan ID pemungut
+                        checked: isChecked ? 1 : 0,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(res) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: 'Data berhasil diupdate!',
+                        });
+                        tablePlotting.ajax.reload();
+                    },
+                    error: function(err) {
+                        console.error('Gagal update', err);
+                    }
+                });
             });
 
             // show modal
             $('#modal-plotting').removeClass('hidden');
-
-            $.ajax({
-                url: "{{ route('desa.managePemungut.plotting.getDesa') }}",
-                type: "GET",
-                success: function(data) {
-                    let desaArray = data["data"]; // ambil array dari key 'data'
-                    let $select = $('#desa');
-                    $select.empty();
-                    $select.append('<option value="">-- Pilih Desa --</option>');
-
-                    desaArray.forEach(function(desa) {
-                        $select.append(`<option value="${desa.id}">${desa.name}</option>`);
-                    });
-                },
-                error: function(err) {
-                    console.log('Gagal ambil desa', err);
-                }
-            });
-
-        });
-
-        // Ketika pilih desa
-        $('#desa').on('change', function() {
-            let desaId = $(this).val();
-            let $selectMasyarakat = $('#masyarakat');
-
-            // Kosongkan select2
-            $selectMasyarakat.empty().trigger('change'); 
-            $selectMasyarakat.append('<option value="">-- Pilih Masyarakat --</option>');
-
-            if(desaId) {
-                $.ajax({
-                    url: `{{ Route('desa.managePemungut.plotting.getMasyarakat', ['desaId'=> ':desaId']) }}`.replace(':desaId', desaId),
-                    type: 'GET',
-                    success: function(response) {
-                        let masyarakat = response.data || [];
-                        masyarakat.forEach(function(m) {
-                            let option = new Option(`${m.nama} (${m.user.nik})`, m.id, false, false);
-                            $selectMasyarakat.append(option);
-                        });
-                        // Refresh Select2
-                        $selectMasyarakat.trigger('change');
-                    },
-                    error: function(err) {
-                        console.error(err);
-                    }
-                });
-            }
-        });
-
-        // Submit Form PLOT
-        $('#form-plotting').submit(function(e) {
-            e.preventDefault();
-
-            url = "{{ route('desa.managePemungut.plotting.sendPlot', ['idPemungut' => ':idPemungut']) }}";
-            url = url.replace(':idPemungut', idPemungut)
-
-            var formData = new FormData($("#form-plotting")[0]);
-
-            $.ajax({
-                type: "POST",
-                url: url,
-                data: formData,
-                processData: false,
-                contentType: false,
-                beforeSend: function() {
-                    $('*').removeClass('is-invalid');
-                },
-                success: function(response) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil Tersimpan!',
-                        text: response.meta.message,
-                    });
-                    tablePlotting.ajax.reload();
-                    // reset form di dalam modal
-                    $('#modal-plotting').find('form')[0].reset();
-                    $('#modal-plotting').find('select').val('').trigger('change');
-                },
-                error: function(xhr, ajaxOptions, thrownError) {
-                    switch (xhr.status) {
-                        case 422:
-                        var errors = xhr.responseJSON.meta.message;
-                        var message = '';
-                        $.each(errors, function(key, value) {
-                            message = value;
-                            $('*[name="' + key + '"]').addClass('is-invalid');
-                            $('.invalid-feedback.' + key + '_error').html(value);
-                        });
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal!',
-                            text: message,
-                        })
-                        break;
-                        default:
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal!',
-                            text: 'Terjadi kesalahan!',
-                        })
-                        break;
-                    }
-                }
-            });
-        });
-
-        // Hapus Data 
-        $('#table-plotting tbody').on('click', '.btn-hapus-plotting', function() {
-            var data = tablePlotting.row($(this).parents('tr')).data();
-
-            let urlDestroy = "{{ route('desa.managePemungut.plotting.hapusPlotting', ['idMasyarakat' => ':idMasyarakat']) }}"
-            urlDestroy = urlDestroy.replace(':idMasyarakat', data.id);
-
-            Swal.fire({
-                title: 'Apakah anda yakin?',
-                text: "Data yang dihapus tidak dapat dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                $.ajax({
-                    type: "GET",
-                    url: urlDestroy,
-                    beforeSend: function() {
-                    },
-                    success: function(data) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: 'Data berhasil dihapus!',
-                    })
-                    tablePlotting.ajax.reload();
-                    },
-                    error: function(xhr, ajaxOptions, thrownError) {
-                    switch (xhr.status) {
-                        case 500:
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal!',
-                            text: 'Server Error!',
-                        })
-                        break;
-                        default:
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal!',
-                            text: 'Terjadi kesalahan!',
-                        })
-                        break;
-                    }
-                    }
-                });
-                }
-            });
         });
 
         // Fungsi umum untuk menutup modal
         function setupModal(modalId) {
             const $modal = $(modalId);
 
-            // Tutup modal saat tombol ✕ atau Batal ditekan
-            $modal.find('button').on('click', function() {
-                const text = $(this).text().trim();
-                if (text === '✕' || text === 'Selesai' || text === 'Batal') {
+            $modal.find('button[data-action="close"]').on('click', function() {
+                try {
                     resetModal($modal);
-                    $modal.addClass('hidden');
+                } catch(e) {
+                    console.warn('resetModal skip:', e.message);
                 }
-            });
-
-            // Tutup modal jika klik di luar box modal
-            $modal.on('click', function(e) {
-                if ($(e.target).is(this)) {
-                    resetModal(this);
-                    $(this).addClass('hidden');
-                }
+                $modal.addClass('hidden');
             });
         }
 

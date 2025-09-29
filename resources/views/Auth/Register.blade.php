@@ -117,7 +117,7 @@
         </div>
         <div class="flex-1 bg-indigo-100 text-center hidden lg:flex">
             <div class="m-12 xl:m-16 w-full bg-contain bg-center bg-no-repeat"
-                style="background-image: url('{{ asset('img/kedaireka.png') }}');">
+                style="background-image: url('{{ asset('img/logo.jpg') }}');">
             </div>
         </div>
     </div>

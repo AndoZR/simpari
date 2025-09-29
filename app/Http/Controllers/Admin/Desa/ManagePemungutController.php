@@ -109,71 +109,70 @@ class ManagePemungutController extends Controller
         }
     }
 
-    public function plottingGetDesa(Request $request){
-        if ($request->ajax()) {
-            $dataDesa = Desa::where('district_id',3511080)->get();
-
-            return ResponseFormatter::success($dataDesa, 'Data Pemungut Berhasil Diambil');
-        }
-    }
-
-    public function getMasyarakatByDesa($desaId)
-    {
-        $masyarakat = Masyarakat::where('village_id', $desaId)
-            ->select('id', 'nama', 'telepon', 'alamat', 'user_id') // tambahkan user_id
-            ->with('user')
-            ->get();
-
-
-        return ResponseFormatter::success($masyarakat, 'Data Masyarakat By Desa Berhasil Diambil');
-    }
-
     public function getPlotting(Request $request, $idPemungut)
     {
-        $dataPlotting = Masyarakat::where('pemungut_id', $idPemungut)->with('user')->get();
-        if ($request->ajax()) {
+        // Ambil desa_id dari adminDesa yang sedang login
+        $desaId = auth()->user()->adminDesa->village_id;
 
+        // Ambil semua masyarakat sesuai desa + relasi user
+        $dataPlotting = Masyarakat::with('user')
+            ->where('village_id', $desaId)
+            ->get();
+
+        // Tambahin kolom 'is_plotted' → true/false
+        $dataPlotting->map(function ($item) use ($idPemungut) {
+            $item->is_plotted = $item->pemungut_id == $idPemungut;
+            return $item;
+        });
+
+        if ($request->ajax()) {
             return ResponseFormatter::success($dataPlotting, 'Data Plotting Berhasil Diambil');
         }
     }
 
-    public function sendPlot(Request $request, $idPemungut)
+    public function toggle(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'masyarakat' => 'required',
+        $request->validate([
+            'masyarakat_id' => 'required|exists:masyarakat,id',
+            'pemungut_id'   => 'required|integer',
+            'checked'       => 'required|boolean',
         ]);
 
-        if ($validator->fails()) {
-            return ResponseFormatter::error(null,$validator->errors(),422);
-        };
+        $masyarakat = Masyarakat::find($request->masyarakat_id);
 
-        try {
-            foreach ($request->masyarakat as $id) {
-                $masyarakat = Masyarakat::find($id);
-                if ($masyarakat) {
-                    $masyarakat->update([
-                        'pemungut_id' => $idPemungut,
-                    ]);
-                }
-            }
-
-            return ResponseFormatter::success(null, "Data Plotting Berhasil Ditambah!");
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
-            return ResponseFormatter::error($e->getMessage(), "Data gagal disimpan. Kesalahan Server", 500);
+        if ($request->checked) {
+            // Assign ke pemungut
+            $masyarakat->pemungut_id = $request->pemungut_id;
+        } else {
+            // Hapus plotting
+            $masyarakat->pemungut_id = null;
         }
+
+        $masyarakat->save();
+
+        return ResponseFormatter::success($masyarakat, 'Plotting berhasil diperbarui');
     }
 
-    public function hapusPlotting($id){
-        try{
-            $masyarakat = Masyarakat::find($id);
-            $masyarakat->update([
-                'pemungut_id' => null,
-            ]);
-            return ResponseFormatter::success("Data Plotting Berhasil Dihapus!");
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
-            return ResponseFormatter::error($e->getMessage(), "Data gagal dihapus. Kesalahan Server", 500);
+    // Desa/ManagePemungutController.php
+    public function toggleAll(Request $request)
+    {
+        $request->validate([
+            'pemungut_id'   => 'required|exists:pemungut,id',
+            'checked'       => 'required|boolean',
+            'masyarakat_ids'=> 'required|array'
+        ]);
+
+        if ($request->checked) {
+            // Assign semua masyarakat ke pemungut
+            Masyarakat::whereIn('id', $request->masyarakat_ids)
+                ->update(['pemungut_id' => $request->pemungut_id]);
+        } else {
+            // Hapus plotting (set pemungut_id null)
+            Masyarakat::whereIn('id', $request->masyarakat_ids)
+                ->update(['pemungut_id' => null]);
         }
+
+        return ResponseFormatter::success(null, 'Plotting berhasil diperbarui massal');
     }
+
 }

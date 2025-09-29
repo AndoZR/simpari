@@ -52,7 +52,7 @@
                 style="background-image: url('https://storage.googleapis.com/devitary-image-host.appspot.com/15848031292911696601-undraw_designer_life_w96d.svg');">
             </div> --}}
             <div class="m-12 xl:m-16 w-full bg-contain bg-center bg-no-repeat"
-                style="background-image: url('{{ asset('img/kedaireka.png') }}');">
+                style="background-image: url('{{ asset('img/logo.jpg') }}');">
             </div>
         </div>
     </div>

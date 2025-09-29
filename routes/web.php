@@ -30,10 +30,8 @@ Route::middleware(['auth', 'role:admin_desa'])->group(function () {
         Route::get('/manage-pemungut/hapus/{id}', [ManagePemungutController::class, 'hapusPemungut'])->name('managePemungut.hapus');
         
         Route::get('/manage-pemungut/plotting/{idPemungut}', [ManagePemungutController::class, 'getPlotting'])->name('managePemungut.plotting.index');
-        Route::get('/manage-pemungut/plotting-get-desa', [ManagePemungutController::class, 'plottingGetDesa'])->name('managePemungut.plotting.getDesa');
-        Route::get('/manage-pemungut/plotting-get-masyarakat/{desaId}', [ManagePemungutController::class, 'getMasyarakatByDesa'])->name('managePemungut.plotting.getMasyarakat');
-        Route::post('/manage-pemungut/send-plot/{idPemungut}', [ManagePemungutController::class, 'sendPlot'])->name('managePemungut.plotting.sendPlot');
-        Route::get('/manage-pemungut/plotting/hapus/{idMasyarakat}', [ManagePemungutController::class, 'hapusPlotting'])->name('managePemungut.plotting.hapusPlotting');
+        Route::post('/manage-pemungut/plotting/toggle', [ManagePemungutController::class, 'toggle'])->name('managePemungut.toggle');
+        Route::post('/manage-pemungut/plotting/toggle-all', [ManagePemungutController::class, 'toggleAll'])->name('managePemungut.toggleAll');
     
         Route::get('/tagihan', [TagihanController::class, 'index'])->name('tagihan.index');
         Route::post('/tagihan/update-status', [TagihanController::class, 'updateStatus'])->name('tagihan.updateStatus');
