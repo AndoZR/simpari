@@ -36,15 +36,7 @@ public function run(): void
                 $urut  = str_pad(rand(1, 9999),  4, '0', STR_PAD_LEFT);
                 $jenis = str_pad(rand(0, 9),     1, '0', STR_PAD_LEFT);
 
-                $nop_raw = $prov.$kab.$kec.$kel.$blok.$urut.$jenis; // 18 digit
-
-                $nopFormatted = substr($nop_raw,0,2) . "." .
-                                substr($nop_raw,2,2) . "." .
-                                substr($nop_raw,4,3) . "." .
-                                substr($nop_raw,7,3) . "." .
-                                substr($nop_raw,10,3) . "-" .
-                                substr($nop_raw,13,4) . "." .
-                                substr($nop_raw,17,1);
+                $nopFormatted = $this->formatNOP($prov, $kab, $kec, $kel, $blok, $urut, $jenis);
             } while (Tagihan::where('nop', $nopFormatted)->exists());
 
             $sisa = $jumlah;
@@ -95,6 +87,14 @@ public function run(): void
             }
         }
     }
+}
+
+private function formatNOP($prov, $kab, $kec, $kel, $blok, $urut, $jenis): string
+{
+    return sprintf(
+        '%s.%s.%s.%s.%s.%s-%s',
+        $prov, $kab, $kec, $kel, $blok, $urut, $jenis
+    );
 }
 
 }

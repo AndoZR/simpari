@@ -482,15 +482,19 @@
                     ids.push(this.data().id);
                 });
 
-                // kirim ke server
+                // kirim ke server dalam format JSON
                 $.ajax({
                     url: "{{ route('desa.managePemungut.toggleAll') }}",
                     type: 'POST',
-                    data: {
+                    contentType: 'application/json', // kirim sebagai JSON
+                    data: JSON.stringify({
                         masyarakat_ids: ids,
                         pemungut_id: idPemungut,
                         checked: isChecked ? 1 : 0,
-                        _token: $('meta[name="csrf-token"]').attr('content')
+                        // _token: $('meta[name="csrf-token"]').attr('content')
+                    }),
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // token csrf tetap
                     },
                     success: function(res) {
                         Swal.fire({

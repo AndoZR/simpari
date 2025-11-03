@@ -162,13 +162,15 @@ class ManagePemungutController extends Controller
             'masyarakat_ids'=> 'required|array'
         ]);
 
+        $ids = $request->masyarakat_ids;
+
         if ($request->checked) {
             // Assign semua masyarakat ke pemungut
-            Masyarakat::whereIn('id', $request->masyarakat_ids)
+            Masyarakat::whereIn('id', $ids)
                 ->update(['pemungut_id' => $request->pemungut_id]);
         } else {
             // Hapus plotting (set pemungut_id null)
-            Masyarakat::whereIn('id', $request->masyarakat_ids)
+            Masyarakat::whereIn('id', $ids)
                 ->update(['pemungut_id' => null]);
         }
 
