@@ -98,7 +98,7 @@ class PemungutController extends Controller
         try {
             $user = Auth::user();
             
-            $pemungut = Pemungut::where('id', $user->id)
+            $pemungut = Pemungut::where('user_id', $user->id)
                 ->with(['user', 'masyarakat.tagihan'])
                 ->first();
 
