@@ -300,43 +300,79 @@ class PemungutController extends Controller
         return $formatted;
     }
 
+    // public function getTagihanByNop(Request $request)
+    // {
+    //     $nop = $request->nop;
+    //     // $nop = "18.42.882.557.877.7381-8";
+
+    //     // jika input tidak ada titik, coba format
+    //     if (strpos($nop, '.') === false) {
+    //         // hapus semua karakter non-digit
+    //         $digits = preg_replace('/\D/', '', $nop);
+
+    //         // cek panjang minimal (misal 18-19 digit sesuai format)
+    //         if (strlen($digits) < 18) {
+    //             return ResponseFormatter::error(null, "NOP tidak valid", 422);
+    //         }
+
+    //         // format NOP
+    //         $nop = $this->formatNop($nop);
+    //     } else {
+    //         // jika input ada titik, validasi dengan regex
+    //         $pattern = '/^\d{2}\.\d{2}\.\d{3}\.\d{3}\.\d{3}.\d{4}\-\d$/';
+    //         if (!preg_match($pattern, $nop)) {
+    //             return ResponseFormatter::error(null, "Format NOP tidak valid, hilangkan tanda baca atau gunakan format xx.xx.xxx.xxx.xxx-xxxx.x", 422);
+    //         }
+    //     }
+
+    //     // query tagihan
+    //     $tagihan = Tagihan::where('nop', $nop)
+    //         ->select('id','masyarakat_id', 'nop', 'jumlah', 'sisa_tagihan', 'status', 'tanggal_lunas')
+    //         ->with(['masyarakat:id,nama'])
+    //         ->first();
+
+    //     if (!$tagihan) {
+    //         return ResponseFormatter::error(null, "Tagihan tidak ditemukan", 404);
+    //     }
+
+    //     return ResponseFormatter::success($tagihan, "Berhasil mendapatkan data tagihan");
+    // }
+
     public function getTagihanByNop(Request $request)
     {
-        $nop = $request->nop;
+        try {
+            $rawNop = $request->nop;
 
-        // jika input tidak ada titik, coba format
-        if (strpos($nop, '.') === false) {
-            // hapus semua karakter non-digit
-            $digits = preg_replace('/\D/', '', $nop);
+            // Hapus semua selain angka
+            $digits = preg_replace('/\D/', '', $rawNop);
 
-            // cek panjang minimal (misal 18-19 digit sesuai format)
-            if (strlen($digits) < 18) {
-                return ResponseFormatter::error(null, "NOP tidak valid", 422);
+            // Format: 2.2.3.3.3.4-1
+            $nop =
+                substr($digits, 0, 2) . "." .
+                substr($digits, 2, 2) . "." .
+                substr($digits, 4, 3) . "." .
+                substr($digits, 7, 3) . "." .
+                substr($digits, 10, 3) . "." .
+                substr($digits, 13, 4) . "-" .
+                substr($digits, 17, 1);
+
+            // Query tagihan
+            $tagihan = Tagihan::where('nop', $nop)
+                ->select('id', 'masyarakat_id', 'nop', 'jumlah', 'sisa_tagihan', 'status', 'tanggal_lunas')
+                ->with(['masyarakat:id,nama'])
+                ->first();
+
+            if (!$tagihan) {
+                return ResponseFormatter::error(null, "Tagihan tidak ditemukan", 404);
             }
 
-            // format NOP
-            $nop = $this->formatNop($nop);
-        } else {
-            // jika input ada titik, validasi dengan regex
-            $pattern = '/^\d{2}\.\d{2}\.\d{3}\.\d{3}\.\d{3}-\d{4}\.\d$/';
-            if (!preg_match($pattern, $nop)) {
-                return ResponseFormatter::error(null, "Format NOP tidak valid, hilangkan tanda baca atau gunakan format xx.xx.xxx.xxx.xxx-xxxx.x", 422);
-            }
+            return ResponseFormatter::success($tagihan, "Berhasil mendapatkan data tagihan");
+
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return ResponseFormatter::error(null, $e->getMessage(), 500);
         }
-
-        // query tagihan
-        $tagihan = Tagihan::where('nop', $nop)
-            ->select('id','masyarakat_id', 'nop', 'jumlah', 'sisa_tagihan', 'status', 'tanggal_lunas')
-            ->with(['masyarakat:id,nama'])
-            ->first();
-
-        if (!$tagihan) {
-            return ResponseFormatter::error(null, "Tagihan tidak ditemukan", 404);
-        }
-
-        return ResponseFormatter::success($tagihan, "Berhasil mendapatkan data tagihan");
     }
-
 
 
 

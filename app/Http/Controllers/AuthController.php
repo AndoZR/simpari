@@ -103,11 +103,13 @@ class AuthController extends Controller
 
         } catch (Exception $e) {
             // 🔹 Catat error ke log
-            Log::error('Login error: ' . $e->getMessage());
+            $errorMessage = $e->getMessage();
+            Log::error('Login error: ' . $errorMessage);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan server saat login',
+                'message' => $errorMessage,
+                // 'message' => 'Terjadi kesalahan server saat login',
             ], 500);
         }
     }
