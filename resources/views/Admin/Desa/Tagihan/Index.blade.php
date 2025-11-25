@@ -279,6 +279,15 @@ $(document).ready(function() {
         if (this.files.length > 0) {
             let formData = new FormData(document.getElementById('importForm'));
 
+            Swal.fire({
+                title: 'Mengupload...',
+                text: 'Mohon tunggu sebentar',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            });
+            
             fetch("{{ route('desa.tagihan.import') }}", {
                 method: "POST",
                 body: formData,

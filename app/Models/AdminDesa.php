@@ -13,7 +13,8 @@ class AdminDesa extends Model
         'telepon',
         'tagihan',
         'sisa_tagihan',
-        'diterima_kec'
+        'diterima_kec',
+        'village_id'
     ];
 
     public function desa()

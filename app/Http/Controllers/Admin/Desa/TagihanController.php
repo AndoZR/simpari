@@ -7,6 +7,7 @@ use App\Exports\TagihanExport;
 use App\Imports\TagihanImport;
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
 
@@ -15,7 +16,11 @@ class TagihanController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()){
-            $tagihan = Tagihan::with('masyarakat.user','masyarakat.pemungut.user')->get();
+            $village_id = Auth::user()->adminDesa->village_id;
+            $tagihan = Tagihan::with(['masyarakat.user', 'masyarakat.pemungut.user'])
+            ->whereHas('masyarakat', function($q) use ($village_id) {
+                $q->where('village_id', $village_id);
+            })->get();
 
             return ResponseFormatter::success($tagihan,"Berhasil mengambil data tagihan");
         }
