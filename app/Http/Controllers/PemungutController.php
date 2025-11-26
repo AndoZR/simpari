@@ -255,6 +255,7 @@ class PemungutController extends Controller
                         'tanggal_lunas' => $request->tanggal_lunas ?? now(),
                         'status' => 'lunas',
                         'sisa_tagihan' => 0,
+                        'uang_dipemungut' => $tagihan->jumlah
                     ]);
                 } else { // lagi cicilan atau belum lunas
                     if ($dataCicilan) {
@@ -272,7 +273,6 @@ class PemungutController extends Controller
                     $tagihan->update([
                         'status' => 'cicilan',
                         'sisa_tagihan' => $tagihan->jumlah - $nominal,
-                        'uang_dipemungut' => +$nominal
                     ]);
                 }
             }
