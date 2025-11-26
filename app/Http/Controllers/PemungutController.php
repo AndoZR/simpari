@@ -244,36 +244,40 @@ class PemungutController extends Controller
                 $dataCicilan = Cicilan::where('tagihan_id', $tagihan->id)->first();
 
                 // Logika update status
-                if ($nominal >= $tagihan->jumlah) { // langsung bayar lunas atau cicilan telah lunas
-                    if ($dataCicilan) {
-                        $dataCicilan->update([
-                            'total_cicilan_now' => $nominal
+                if ($tagihan->status != "lunas"){
+                    if ($nominal >= $tagihan->jumlah) { // langsung bayar lunas atau cicilan telah lunas
+                        if ($dataCicilan) {
+                            $dataCicilan->update([
+                                'total_cicilan_now' => $nominal
+                            ]);
+                        }
+    
+                        $tagihan->update([
+                            'tanggal_lunas' => $request->tanggal_lunas ?? now(),
+                            'status' => 'lunas',
+                            'sisa_tagihan' => 0,
+                            'uang_dipemungut' => $tagihan->jumlah
+                        ]);
+                    } else { // lagi cicilan atau belum lunas
+                        if ($dataCicilan) {
+                            $dataCicilan->update([
+                                'total_cicilan_now' => $nominal
+                            ]);
+                        } else {
+                            Cicilan::create([
+                                'tagihan_id' => $tagihan->id,
+                                'total_cicilan_now' => $nominal,
+                            ]);
+    
+                        }
+                        $tagihan->increment('uang_dipemungut', $nominal); // update kolom uang_dipemungut karena masyarakat udah bayar cicilan
+                        $tagihan->update([
+                            'status' => 'cicilan',
+                            'sisa_tagihan' => $tagihan->jumlah - $nominal,
                         ]);
                     }
-
-                    $tagihan->update([
-                        'tanggal_lunas' => $request->tanggal_lunas ?? now(),
-                        'status' => 'lunas',
-                        'sisa_tagihan' => 0,
-                        'uang_dipemungut' => $tagihan->jumlah
-                    ]);
-                } else { // lagi cicilan atau belum lunas
-                    if ($dataCicilan) {
-                        $dataCicilan->update([
-                            'total_cicilan_now' => $nominal
-                        ]);
-                    } else {
-                        Cicilan::create([
-                            'tagihan_id' => $tagihan->id,
-                            'total_cicilan_now' => $nominal,
-                        ]);
-
-                    }
-                    $tagihan->increment('uang_dipemungut', $nominal); // update kolom uang_dipemungut karena masyarakat udah bayar cicilan
-                    $tagihan->update([
-                        'status' => 'cicilan',
-                        'sisa_tagihan' => $tagihan->jumlah - $nominal,
-                    ]);
+                } else {
+                    //do nothing
                 }
             }
 
