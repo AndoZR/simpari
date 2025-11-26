@@ -13,6 +13,7 @@ class Pemungut extends Model
         'telepon',
         'alamat',
         'user_id',
+        'admin_desa_id',
     ];
 
     // Relasi balik ke user
@@ -25,4 +26,10 @@ class Pemungut extends Model
     {
         return $this->hasMany(Masyarakat::class, 'pemungut_id');
     }
+
+    public function adminDesa()
+    {
+        return $this->belongsTo(AdminDesa::class, 'admin_desa_id');
+    }
+
 }

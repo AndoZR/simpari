@@ -18,7 +18,15 @@ class ManagePemungutController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = User::where('role', 'pemungut')->with('pemungutData')->get();
+            $adminDesaId = auth()->user()->id;
+            
+            $data = User::where('role', 'pemungut')
+                ->whereHas('pemungutData', function ($q) use ($adminDesaId) {
+                    $q->where('admin_desa_id', $adminDesaId);
+                })
+                ->with('pemungutData')
+                ->get();
+
 
             return ResponseFormatter::success($data, 'Data Pemungut Berhasil Diambil');
         }
@@ -46,11 +54,14 @@ class ManagePemungutController extends Controller
                 'role' => 'pemungut',
             ]);
 
+            $adminDesaId = auth()->user()->id;
+
             $data = Pemungut::create([
                 'nama' => $request->nama,
                 'telepon' => $request->telepon,
                 'alamat' => $request->alamat,
                 'user_id' => $user->id,
+                'admin_desa_id' => $adminDesaId
             ]);
 
             return ResponseFormatter::success($data, "Data Pemungut Berhasil Dibuat!");
@@ -115,7 +126,7 @@ class ManagePemungutController extends Controller
         $desaId = auth()->user()->adminDesa->village_id;
 
         // Ambil semua masyarakat sesuai desa + relasi user
-        $dataPlotting = Masyarakat::with('user')
+        $dataPlotting = Masyarakat::with('tagihan')
             ->where('village_id', $desaId)
             ->get();
 

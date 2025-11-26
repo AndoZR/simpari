@@ -17,7 +17,7 @@
 <h1 class="text-3xl text-black pb-6">Daftar Tagihan Pajak</h1>
 
 <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative" role="alert">
-  <span class="block sm:inline">Ubah status "lunas" menjadi "didesa" untuk menyelesaikan setor pajak di Desa.</span>
+  <span class="block sm:inline">Ubah status dengan tekan "Setor" pada kolom aksi untuk menyelesaikan setor pajak di desa dari pemungut.</span>
   <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
     <button onclick="this.parentElement.parentElement.remove()">
       <svg class="fill-current h-6 w-6 text-blue-500" role="button" xmlns="http://www.w3.org/2000/svg"

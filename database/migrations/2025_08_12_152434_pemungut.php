@@ -14,6 +14,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('telepon')->nullable();
             $table->string('alamat')->nullable();
+            // RELASI admin_desa
+            $table->foreignId('admin_desa_id')->nullable()->constrained('admin_desa')->onDelete('set null');
             $table->timestamps();
         });
     }

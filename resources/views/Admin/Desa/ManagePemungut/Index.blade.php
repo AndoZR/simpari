@@ -144,7 +144,7 @@
                     <tr>
                         <th class="text-left py-3 px-4 uppercase font-semibold text-sm border-r border-gray-700">No.</th>
                         <th class="text-left py-3 px-4 uppercase font-semibold text-sm border-r border-gray-700">Nama</th>
-                        <th class="text-left py-3 px-4 uppercase font-semibold text-sm border-r border-gray-700">NIK</th>
+                        <th class="text-left py-3 px-4 uppercase font-semibold text-sm border-r border-gray-700">NOP</th>
                         <th class="text-left uppercase font-semibold text-sm"><input type="checkbox" id="checkAll" class="form-checkbox text-red-600">Check All</th>
                     </tr>
                 </thead>
@@ -436,7 +436,6 @@
                         data: null,
                         className: 'text-center align-middle',
                         render: function(data, type, row, meta) {
-                            console.log(data);
                             return meta.row + 1;
                         }
                     },
@@ -450,10 +449,10 @@
                     },
                     {
                         targets: 2,
-                        data: 'user.nik',
+                        data: 'tagihan',
                         className: 'text-center align-middle',
                         render: function(data, type, row, meta) {
-                            return data;
+                            return data[0].nop;
                         }
                     },
                     {
