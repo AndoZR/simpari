@@ -116,6 +116,8 @@ class PemungutController extends Controller
 
                     if ($tagih->status === 'lunas') {
                         $statusTagihan = 1; // sudah lunas
+                    } elseif ($tagih->status === 'didesa'){
+                        $statusTagihan = 1; // sudah lunas
                     } else {
                         $statusTagihan = 0; // belum lunas
                     }
