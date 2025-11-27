@@ -251,9 +251,9 @@ class PemungutController extends Controller
                 }
 
                 // Logika update status
-                // if ($tagihan->status != "lunas" && $tagihan->status != "didesa"){
-                //     continue;
-                // } 
+                if ($tagihan->status == "lunas" || $tagihan->status == "didesa"){
+                    continue;
+                } 
 
                 if ($nominal >= $tagihan->sisa_tagihan) { // langsung bayar lunas atau cicilan telah lunas
                     if ($dataCicilan) {
