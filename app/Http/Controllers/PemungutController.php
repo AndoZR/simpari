@@ -245,15 +245,15 @@ class PemungutController extends Controller
                 
                 $dataCicilan = Cicilan::where('tagihan_id', $tagihan->id)->first();
 
-                if ($nominal <= 0) {
-                    // Tidak ada pembayaran → jangan ubah status
-                    continue; // return skip
-                }
+                // if ($nominal <= 0) {
+                //     // Tidak ada pembayaran → jangan ubah status
+                //     continue; // return skip
+                // }
 
                 // Logika update status
-                if ($tagihan->status != "lunas" && $tagihan->status != "didesa"){
-                    continue;
-                } 
+                // if ($tagihan->status != "lunas" && $tagihan->status != "didesa"){
+                //     continue;
+                // } 
 
                 if ($nominal >= $tagihan->sisa_tagihan) { // langsung bayar lunas atau cicilan telah lunas
                     if ($dataCicilan) {
