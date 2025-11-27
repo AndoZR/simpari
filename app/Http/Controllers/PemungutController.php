@@ -247,7 +247,7 @@ class PemungutController extends Controller
 
                 if ($nominal <= 0) {
                     // Tidak ada pembayaran → jangan ubah status
-                    continue; // return skip
+                    continue;
                 }
 
                 // Logika update status
