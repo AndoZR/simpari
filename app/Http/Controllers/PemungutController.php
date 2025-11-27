@@ -280,10 +280,11 @@ class PemungutController extends Controller
                         ]);
 
                     }
-                    $tagihan->increment('uang_dipemungut', $nominal); // update kolom uang_dipemungut karena masyarakat udah bayar cicilan
+                    // $tagihan->increment('uang_dipemungut', $nominal); // update kolom uang_dipemungut karena masyarakat udah bayar cicilan
                     $tagihan->update([
                         'status' => 'cicilan',
                         'sisa_tagihan' => $tagihan->jumlah - $nominal,
+                        'uang_dipemungut' => $nominal
                     ]);
                 }
             }
