@@ -575,37 +575,37 @@
                 });
             });
 
-            $('#btnSelesai').on('click', function () {
-                $.ajax({
-                    url: "{{ route('desa.managePemungut.toggleAll') }}",
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        masyarakat_ids: Array.from(selectedMasyarakat),
-                        pemungut_id: idPemungut,
-                        _token: $('meta[name="csrf-token"]').attr('content')
-                    }),
-                    success: function(res) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil',
-                            text: 'Data berhasil disimpan!'
-                        });
+            // $('#btnSelesai').on('click', function () {
+            //     $.ajax({
+            //         url: "{{ route('desa.managePemungut.toggleAll') }}",
+            //         type: 'POST',
+            //         contentType: 'application/json',
+            //         data: JSON.stringify({
+            //             masyarakat_ids: Array.from(selectedMasyarakat),
+            //             pemungut_id: idPemungut,
+            //             _token: $('meta[name="csrf-token"]').attr('content')
+            //         }),
+            //         success: function(res) {
+            //             Swal.fire({
+            //                 icon: 'success',
+            //                 title: 'Berhasil',
+            //                 text: 'Data berhasil disimpan!'
+            //             });
 
-                        // reset
-                        selectedMasyarakat.clear();
-                        tablePlotting.ajax.reload();
-                    },
-                    error: function(err) {
-                        console.error(err);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal',
-                            text: 'Gagal menyimpan data!'
-                        });
-                    }
-                });
-            });
+            //             // reset
+            //             selectedMasyarakat.clear();
+            //             tablePlotting.ajax.reload();
+            //         },
+            //         error: function(err) {
+            //             console.error(err);
+            //             Swal.fire({
+            //                 icon: 'error',
+            //                 title: 'Gagal',
+            //                 text: 'Gagal menyimpan data!'
+            //             });
+            //         }
+            //     });
+            // });
 
             // show modal
             $('#modal-plotting').removeClass('hidden');
