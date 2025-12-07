@@ -5,11 +5,12 @@ namespace App\Models;
 use App\Models\Desa;
 use Illuminate\Database\Eloquent\Model;
 
-class AdminDesa extends Model
+ class AdminDesa extends Model
 {
     protected $table = "admin_desa";
 
     protected $fillable = [
+        'user_id',
         'telepon',
         'tagihan',
         'sisa_tagihan',

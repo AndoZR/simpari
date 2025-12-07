@@ -25,6 +25,10 @@
             Tagihan
         </a>
         @else
+        <a href="{{ Route('kecamatan.manageAkunDesa.index') }}" class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item">
+            <i class="fas fa-align-left mr-3"></i>
+            Manage Akun Desa
+        </a>
         <a href="{{ Route('kecamatan.tagihan.index') }}" class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item">
             <i class="fas fa-align-left mr-3"></i>
             Tagihan

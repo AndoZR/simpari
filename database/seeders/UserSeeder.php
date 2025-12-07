@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\AdminDesa;
+use App\Models\AdminKecamatan;
 use App\Models\User;
 use App\Models\Masyarakat;
 use App\Models\Pemungut;
@@ -112,6 +113,11 @@ class UserSeeder extends Seeder
             'nik' => '3511010101019991',
             'password' => Hash::make('123123123'),
             'role' => 'admin_kecamatan',
+        ]);
+
+        AdminKecamatan::create([
+            'user_id' => 12,
+            'kecamatan_id' => '3511080',
         ]);
 
 

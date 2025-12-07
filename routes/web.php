@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\Desa\TagihanController;
+use App\Http\Controllers\KecamatanManageAkunDesaController;
 use App\Http\Controllers\Admin\Desa\ManagePemungutController;
 use App\Http\Controllers\Admin\Kecamatan\KecamatanTagihanController;
 
@@ -42,6 +43,11 @@ Route::middleware(['auth', 'role:admin_desa'])->group(function () {
 
 Route::middleware(['auth', 'role:admin_kecamatan'])->group(function () {
     Route::group(['prefix' => 'kecamatan', 'as' => 'kecamatan.'], function () {
+        Route::get('/manage-akun-desa', [KecamatanManageAkunDesaController::class, 'index'])->name('manageAkunDesa.index');
+        Route::post('/manage-akun-desa/tambah', [KecamatanManageAkunDesaController::class, 'tambahAkunDesa'])->name('manageAkunDesa.tambah');
+        Route::post('/manage-akun-desa/update/{id}', [KecamatanManageAkunDesaController::class, 'updateAkunDesa'])->name('manageAkunDesa.update');
+        Route::get('/manage-akun-desa/hapus/{id}', [KecamatanManageAkunDesaController::class, 'hapusAkunDesa'])->name('manageAkunDesa.hapus');
+        
         Route::get('/tagihan', [KecamatanTagihanController::class, 'index'])->name('tagihan.index');
         Route::post('/tagihan/update-status', [KecamatanTagihanController::class, 'updateStatus'])->name('tagihan.updateStatus');
     });

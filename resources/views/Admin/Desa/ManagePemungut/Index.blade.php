@@ -156,7 +156,7 @@
 
         <!-- Footer -->
         <div class="flex justify-end gap-2 p-4 border-t flex-shrink-0 bg-white shadow-inner rounded-b-2xl">
-            <button data-action="close" type="button" class="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">
+            <button id="btnSelesai" data-action="close" type="button" class="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">
                 Selesai
             </button>
         </div>
@@ -469,6 +469,28 @@
                 ],
             });
 
+            // let selectedMasyarakat = new Set();
+
+            // $('#checkAll').on('click', function() {
+            //     let isChecked = $(this).is(':checked');
+            //     let ids = [];
+
+            //     tablePlotting.rows().every(function() {
+            //         let id = this.data().id;
+            //         ids.push(id);
+            //     });
+
+            //     if (isChecked) {
+            //         ids.forEach(id => selectedMasyarakat.add(id));
+            //     } else {
+            //         selectedMasyarakat.clear();
+            //     }
+
+            //     // centang UI saja
+            //     $('#table-plotting .row-check').prop('checked', isChecked);
+            // });
+
+
             $('#checkAll').on('click', function() {
                 let isChecked = $(this).is(':checked');
 
@@ -515,6 +537,16 @@
                 });
             });
 
+            // $('#table-plotting tbody').on('change', '.row-check', function() {
+            //     let row = tablePlotting.row($(this).closest('tr')).data();
+            //     let isChecked = $(this).is(':checked');
+
+            //     if (isChecked) {
+            //         selectedMasyarakat.add(row.id);
+            //     } else {
+            //         selectedMasyarakat.delete(row.id);
+            //     }
+            // });
 
             $('#table-plotting tbody').on('change', '.row-check', function() {
                 let row = tablePlotting.row($(this).closest('tr')).data();
@@ -539,6 +571,38 @@
                     },
                     error: function(err) {
                         console.error('Gagal update', err);
+                    }
+                });
+            });
+
+            $('#btnSelesai').on('click', function () {
+                $.ajax({
+                    url: "{{ route('desa.managePemungut.toggleAll') }}",
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        masyarakat_ids: Array.from(selectedMasyarakat),
+                        pemungut_id: idPemungut,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    }),
+                    success: function(res) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: 'Data berhasil disimpan!'
+                        });
+
+                        // reset
+                        selectedMasyarakat.clear();
+                        tablePlotting.ajax.reload();
+                    },
+                    error: function(err) {
+                        console.error(err);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: 'Gagal menyimpan data!'
+                        });
                     }
                 });
             });

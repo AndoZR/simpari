@@ -18,7 +18,9 @@ class ManagePemungutController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $adminDesaId = auth()->user()->id;
+            $adminDesaId = auth()->user()->adminDesa->id;
+
+            // $adminDesaId = auth()->user()->id;
             
             $data = User::where('role', 'pemungut')
                 ->whereHas('pemungutData', function ($q) use ($adminDesaId) {
@@ -54,7 +56,9 @@ class ManagePemungutController extends Controller
                 'role' => 'pemungut',
             ]);
 
-            $adminDesaId = auth()->user()->id;
+            $adminDesaId = auth()->user()->adminDesa->id;
+
+            // $adminDesaId = auth()->user()->id;
 
             $data = Pemungut::create([
                 'nama' => $request->nama,
