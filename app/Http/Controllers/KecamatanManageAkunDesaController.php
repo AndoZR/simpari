@@ -36,7 +36,7 @@ class KecamatanManageAkunDesaController extends Controller
             'nik' => 'required|string|unique:users,nik|digits:16',
             'password' => 'required',
             'village_id' => 'required|string|unique:admin_desa,village_id',
-            'telepon' => 'required|numeric',
+            'telepon' => 'required|numeric|unique:admin_desa,telepon',
         ]);
 
         if ($validator->fails()) {
@@ -106,7 +106,6 @@ class KecamatanManageAkunDesaController extends Controller
             $adminDesa->update([
                 'village_id' => $request->village_id,
                 'telepon' => $request->telepon,
-                'tagihan' => $request->tagihan,
             ]);
 
             return ResponseFormatter::success($adminDesa, "Data Akun Desa Berhasil Diubah!");
