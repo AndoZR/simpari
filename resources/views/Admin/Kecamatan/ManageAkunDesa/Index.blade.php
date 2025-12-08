@@ -17,11 +17,9 @@
             <thead class="bg-gray-800 text-white">
                 <tr>
                     <th class="text-left py-3 px-4 uppercase font-semibold text-sm">No.</th>
-                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Nama</th>
-                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Telepon</th>
-                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Tagihan</th>
-                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Sisa Tagihan</th>
-                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Uang di Kecamatan</th>
+                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Nama Desa</th>
+                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">NIK</th>
+                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Kontak</th>
                     <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Aksi</td>
                 </tr>
             </thead>
@@ -102,17 +100,6 @@
                 <p class="text-red-500 text-sm telepon_error"></p>
             </div>
 
-            <!-- Tagihan -->
-            <div>
-                <label for="tagihan" class="block text-sm font-medium text-gray-700">
-                    Tagihan <span class="text-red-500">*</span>
-                </label>
-                <input type="text" name="tagihan" id="tagihan" 
-                    class="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm px-3 py-2 
-                           focus:ring-blue-500 focus:border-blue-500">
-                <p class="text-red-500 text-sm tagihan_error"></p>
-            </div>
-
             <!-- Footer -->
             <div class="flex justify-end gap-2 pt-4 border-t">
                 <button data-action="close" type="button"
@@ -149,7 +136,7 @@
             searching: true,
             ordering: true,
             info: true,
-            autoWidth: true,
+            autoWidth: false,
             responsive: true,
             ajax: {
                 url: url,
@@ -172,6 +159,7 @@
             columnDefs: [
                 {
                     targets: 0,
+                    width: "10px",
                     data: null,
                     className: 'text-center align-middle',
                     render: function(data, type, row, meta) {
@@ -180,46 +168,25 @@
                 },
                 {
                     targets: 1,
-                    data: 'desa.name', // ini nanti diganti nama desa
+                    width: "250px",
+                    data: 'desa.name',
                     className: 'text-center align-middle',
-                    render: function(data, type, row, meta) {
-                        return data;
-                    }
                 },
                 {
                     targets: 2,
-                    data: 'telepon',
+                    width: "100px",
+                    data: 'user.nik',
                     className: 'text-center align-middle',
-                    render: function(data, type, row, meta) {
-                        return data;
-                    }
                 },
                 {
                     targets: 3,
-                    data: 'tagihan',
+                    width: "100px",
+                    data: 'telepon',
                     className: 'text-center align-middle',
-                    render: function(data, type, row, meta) {
-                        return data;
-                    }
                 },
                 {
                     targets: 4,
-                    data: 'sisa_tagihan',
-                    className: 'text-center align-middle',
-                    render: function(data, type, row, meta) {
-                        return data;
-                    }
-                },
-                {
-                    targets: 5,
-                    data: 'diterima_kec',
-                    className: 'text-center align-middle',
-                    render: function(data, type, row, meta) {
-                        return data;
-                    }
-                },
-                {
-                    targets: 6,
+                    width: "150px",
                     data: null,
                     className: 'text-center align-middle',
                     render: function(data, type, row, meta) {
@@ -227,11 +194,6 @@
                             <button class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-medium rounded-lg shadow-md transition-colors duration-200 btn-update" 
                             title="Update Data">
                             Update
-                            </button>
-
-                            <button class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-md transition-colors duration-200 btn-hapus" 
-                            title="Hapus Data">
-                            Hapus
                             </button>
                         `;
 
@@ -304,80 +266,17 @@
         $('#table-akun-desa tbody').on('click', '.btn-update', function() {
 
             var data = tableAkunAdminDesa.row($(this).closest('tr')).data();
-            console.log(data);
+
             idAkunDesa = data.id;
 
-            // Pastikan data relasi tidak null
-            // var pemungut = data.pemungut_data || {};
-
-            // Isi input sesuai data
-            $('input[name="nama"]').val(desa.nama || '');
-            $('input[name="nik"]').val(data.nik || '');
-            $('input[name="telepon"]').val(pemungut.telepon || '');
-
-            // Jika ada select desa
-            if (pemungut.village_id) {
-                $('select[name="village_id"]').val(pemungut.village_id).trigger('change');
-            }
+            // Pastikan akses datanya benar
+            $('#village_id').val(data.desa.id).trigger('change');
+            $('input[name="nik"]').val(data.user.nik || '');
+            $('input[name="telepon"]').val(data.telepon || '');
 
             // Show modal
             $('#modal-akun-desa').removeClass('hidden');
         });
-
-
-
-        // Hapus Data 
-        // $('#table-akun-desa tbody').on('click', '.btn-hapus', function() {
-        //     var data = tableAkunAdminDesa.row($(this).parents('tr')).data();
-        //     let urlDestroy = "{{ route('desa.managePemungut.hapus', ['id' => ':id']) }}"
-        //     urlDestroy = urlDestroy.replace(':id', data.id);
-
-        //     Swal.fire({
-        //         title: 'Apakah anda yakin?',
-        //         text: "Data yang dihapus tidak dapat dikembalikan!",
-        //         icon: 'warning',
-        //         showCancelButton: true,
-        //         confirmButtonColor: '#dc3545',
-        //         cancelButtonColor: '#6c757d',
-        //         confirmButtonText: 'Ya, hapus!',
-        //         cancelButtonText: 'Batal'
-        //     }).then((result) => {
-        //         if (result.isConfirmed) {
-        //         $.ajax({
-        //             type: "GET",
-        //             url: urlDestroy,
-        //             beforeSend: function() {
-        //             },
-        //             success: function(data) {
-        //             Swal.fire({
-        //                 icon: 'success',
-        //                 title: 'Berhasil',
-        //                 text: 'Data berhasil dihapus!',
-        //             })
-        //             tableAkunAdminDesa.ajax.reload();
-        //             },
-        //             error: function(xhr, ajaxOptions, thrownError) {
-        //             switch (xhr.status) {
-        //                 case 500:
-        //                 Swal.fire({
-        //                     icon: 'error',
-        //                     title: 'Gagal!',
-        //                     text: 'Server Error!',
-        //                 })
-        //                 break;
-        //                 default:
-        //                 Swal.fire({
-        //                     icon: 'error',
-        //                     title: 'Gagal!',
-        //                     text: 'Terjadi kesalahan!',
-        //                 })
-        //                 break;
-        //             }
-        //             }
-        //         });
-        //         }
-        //     });
-        // });
 
         // Fungsi umum untuk menutup modal
         function setupModal(modalId) {
@@ -408,7 +307,6 @@
 
         // Setup kedua modal
         setupModal('#modal-akun-desa');
-        setupModal('#modal-plotting');
     })
 </script>
 @endsection

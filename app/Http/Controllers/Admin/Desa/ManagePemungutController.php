@@ -78,6 +78,7 @@ class ManagePemungutController extends Controller
     public function updatePemungut(Request $request, $id) {
         $validator = Validator::make($request->all(), [
             'nik' => 'string|max:16|unique:users,nik,'. $id,
+            'password' => 'nullable',
             'nama' => 'string|max:255',
             'telepon' => 'numeric',
             'alamat' => 'string',
@@ -145,28 +146,28 @@ class ManagePemungutController extends Controller
         }
     }
 
-    public function toggle(Request $request)
-    {
-        $request->validate([
-            'masyarakat_id' => 'required|exists:masyarakat,id',
-            'pemungut_id'   => 'required|integer',
-            'checked'       => 'required|boolean',
-        ]);
+    // public function toggle(Request $request)
+    // {
+    //     $request->validate([
+    //         'masyarakat_id' => 'required|exists:masyarakat,id',
+    //         'pemungut_id'   => 'required|integer',
+    //         'checked'       => 'required|boolean',
+    //     ]);
 
-        $masyarakat = Masyarakat::find($request->masyarakat_id);
+    //     $masyarakat = Masyarakat::find($request->masyarakat_id);
 
-        if ($request->checked) {
-            // Assign ke pemungut
-            $masyarakat->pemungut_id = $request->pemungut_id;
-        } else {
-            // Hapus plotting
-            $masyarakat->pemungut_id = null;
-        }
+    //     if ($request->checked) {
+    //         // Assign ke pemungut
+    //         $masyarakat->pemungut_id = $request->pemungut_id;
+    //     } else {
+    //         // Hapus plotting
+    //         $masyarakat->pemungut_id = null;
+    //     }
 
-        $masyarakat->save();
+    //     $masyarakat->save();
 
-        return ResponseFormatter::success($masyarakat, 'Plotting berhasil diperbarui');
-    }
+    //     return ResponseFormatter::success($masyarakat, 'Plotting berhasil diperbarui');
+    // }
 
     // Desa/ManagePemungutController.php
     public function toggleAll(Request $request)

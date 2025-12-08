@@ -40,7 +40,7 @@
         <!-- Header -->
         <div class="flex justify-between items-center border-b pb-3">
             <h5 class="text-xl font-semibold">Akun Pemungut</h5>
-            <button data-action="close" class="text-gray-500 hover:text-gray-700 text-2xl leading-none">
+            <button data-action="close" class="close-modal text-gray-500 hover:text-gray-700 text-2xl leading-none">
                 ✕
             </button>
         </div>
@@ -106,7 +106,7 @@
             <!-- Footer -->
             <div class="flex justify-end gap-2 pt-4 border-t">
                 <button data-action="close" type="button"
-                    class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">
+                    class="close-modal px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">
                     Batal
                 </button>
                 <button type="submit"
@@ -175,6 +175,12 @@
 
 <script>
     $(document).ready(function () {
+        $('#modal-pemungut').on('click', '.close-modal', function () {
+            $('#form-pemungut')[0].reset();
+            $('input[name="id"]').val('');
+        });
+
+
         let url = '{{ route("desa.managePemungut.index") }}';
         var idPemungut;
 
@@ -469,143 +475,84 @@
                 ],
             });
 
-            // let selectedMasyarakat = new Set();
-
-            // $('#checkAll').on('click', function() {
-            //     let isChecked = $(this).is(':checked');
-            //     let ids = [];
-
-            //     tablePlotting.rows().every(function() {
-            //         let id = this.data().id;
-            //         ids.push(id);
-            //     });
-
-            //     if (isChecked) {
-            //         ids.forEach(id => selectedMasyarakat.add(id));
-            //     } else {
-            //         selectedMasyarakat.clear();
-            //     }
-
-            //     // centang UI saja
-            //     $('#table-plotting .row-check').prop('checked', isChecked);
-            // });
-
+            let selectedMasyarakat = new Set();
 
             $('#checkAll').on('click', function() {
                 let isChecked = $(this).is(':checked');
-
-                // update semua checkbox UI
-                $('#table-plotting .row-check').prop('checked', isChecked);
-
-                // ambil semua id masyarakat dari datatable
                 let ids = [];
+
                 tablePlotting.rows().every(function() {
-                    ids.push(this.data().id);
+                    let id = this.data().id;
+                    ids.push(id);
                 });
 
-                // kirim ke server dalam format JSON
-                $.ajax({
-                    url: "{{ route('desa.managePemungut.toggleAll') }}",
-                    type: 'POST',
-                    contentType: 'application/json', // kirim sebagai JSON
-                    data: JSON.stringify({
-                        masyarakat_ids: ids,
-                        pemungut_id: idPemungut,
-                        checked: isChecked ? 1 : 0,
-                        // _token: $('meta[name="csrf-token"]').attr('content')
-                    }),
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // token csrf tetap
-                    },
-                    success: function(res) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil',
-                            text: 'Semua data berhasil diperbarui!'
-                        });
-                        tablePlotting.ajax.reload();
-                    },
-                    error: function(err) {
-                        console.error('Gagal update massal', err);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops!',
-                            text: 'Gagal update data massal!'
-                        });
-                        tablePlotting.ajax.reload();
-                    }
-                });
+                if (isChecked) {
+                    ids.forEach(id => selectedMasyarakat.add(id));
+                } else {
+                    selectedMasyarakat.clear();
+                }
+
+                // centang UI saja
+                $('#table-plotting .row-check').prop('checked', isChecked);
             });
 
-            // $('#table-plotting tbody').on('change', '.row-check', function() {
-            //     let row = tablePlotting.row($(this).closest('tr')).data();
-            //     let isChecked = $(this).is(':checked');
-
-            //     if (isChecked) {
-            //         selectedMasyarakat.add(row.id);
-            //     } else {
-            //         selectedMasyarakat.delete(row.id);
-            //     }
-            // });
 
             $('#table-plotting tbody').on('change', '.row-check', function() {
                 let row = tablePlotting.row($(this).closest('tr')).data();
                 let isChecked = $(this).is(':checked');
 
+                if (isChecked) {
+                    selectedMasyarakat.add(row.id);
+                } else {
+                    selectedMasyarakat.delete(row.id);
+                }
+            });
+
+            $('#btnSelesai').off('click').on('click', function () {
+                if (!idPemungut) {
+                    Swal.fire({ icon:'error', title:'Gagal', text:'Pemungut belum dipilih.' });
+                    return;
+                }
+
+                if (selectedMasyarakat.size === 0) {
+                    Swal.fire({ icon:'warning', title:'Perhatian', text:'Pilih minimal 1 masyarakat.' });
+                    return;
+                }
+
+                const payload = {
+                    masyarakat_ids: Array.from(selectedMasyarakat),
+                    pemungut_id: idPemungut,
+                    checked: 1, // <-- penting: sesuai kebutuhan server (1 = ter-plot)
+                };
+
                 $.ajax({
-                    url: "{{ route('desa.managePemungut.toggle') }}",
+                    url: "{{ route('desa.managePemungut.toggleAll') }}",
                     type: 'POST',
-                    data: {
-                        masyarakat_id: row.id,
-                        pemungut_id: idPemungut, // ambil dari variabel JS yg simpan ID pemungut
-                        checked: isChecked ? 1 : 0,
-                        _token: $('meta[name="csrf-token"]').attr('content')
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(res) {
                         Swal.fire({
                             icon: 'success',
                             title: 'Berhasil',
-                            text: 'Data berhasil diupdate!',
+                            text: 'Data berhasil disimpan!'
+                        }).then(() => {
+                            $('#modal-plotting').addClass('hidden');
+
+                            // Reset data
+                            selectedMasyarakat.clear();
+                            tablePlotting.ajax.reload();
                         });
-                        tablePlotting.ajax.reload();
                     },
                     error: function(err) {
-                        console.error('Gagal update', err);
+                        console.error(err);
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal menyimpan data!' });
                     }
                 });
             });
 
-            // $('#btnSelesai').on('click', function () {
-            //     $.ajax({
-            //         url: "{{ route('desa.managePemungut.toggleAll') }}",
-            //         type: 'POST',
-            //         contentType: 'application/json',
-            //         data: JSON.stringify({
-            //             masyarakat_ids: Array.from(selectedMasyarakat),
-            //             pemungut_id: idPemungut,
-            //             _token: $('meta[name="csrf-token"]').attr('content')
-            //         }),
-            //         success: function(res) {
-            //             Swal.fire({
-            //                 icon: 'success',
-            //                 title: 'Berhasil',
-            //                 text: 'Data berhasil disimpan!'
-            //             });
-
-            //             // reset
-            //             selectedMasyarakat.clear();
-            //             tablePlotting.ajax.reload();
-            //         },
-            //         error: function(err) {
-            //             console.error(err);
-            //             Swal.fire({
-            //                 icon: 'error',
-            //                 title: 'Gagal',
-            //                 text: 'Gagal menyimpan data!'
-            //             });
-            //         }
-            //     });
-            // });
 
             // show modal
             $('#modal-plotting').removeClass('hidden');
@@ -617,7 +564,7 @@
 
             $modal.find('button[data-action="close"]').on('click', function() {
                 try {
-                    resetModal($modal);
+                    resetModal(modalId);  // <--- FIX: kirim string
                 } catch(e) {
                     console.warn('resetModal skip:', e.message);
                 }
@@ -628,19 +575,27 @@
         // Fungsi reset modal
         function resetModal(modalId) {
             let $modal = $(modalId);
-            $modal.find('form')[0].reset(); // reset semua input
-            $modal.find('*').removeClass('is-invalid'); // hapus validasi
-            $modal.find('.custom-file-label').html('Pilih file...'); // reset label file
+
+            $modal.find('form')[0]?.reset();
+            $modal.find('*').removeClass('is-invalid');
+            $modal.find('.custom-file-label').html('Pilih file...');
+
             $modal.find('select').each(function() {
                 if ($(this).hasClass('select2-hidden-accessible')) {
-                    $(this).val(null).trigger('change'); // reset Select2
+                    $(this).val(null).trigger('change');
                 }
             });
+
+            // Reset ID hanya untuk modal pemungut
+            if (modalId === '#modal-pemungut') {
+                idPemungut = null;
+            }
         }
 
         // Setup kedua modal
         setupModal('#modal-pemungut');
         setupModal('#modal-plotting');
+
     })
 </script>
 @endsection

@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use Exception;
+use App\Models\Desa;
 use App\Models\User;
+use App\Models\AdminDesa;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
-use App\Models\AdminDesa;
-use App\Models\Desa;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -19,7 +20,7 @@ class KecamatanManageAkunDesaController extends Controller
             $adminKecamatan = auth()->user();
             $kecamatanId = $adminKecamatan->id;
 
-            $data = AdminDesa::with('desa')->get();
+            $data = AdminDesa::with(['desa','user'])->get();
 
             return ResponseFormatter::success($data, 'Data Akun Desa Berhasil Diambil');
         }
@@ -31,19 +32,20 @@ class KecamatanManageAkunDesaController extends Controller
 
     public function tambahAkunDesa(Request $request)
     {
-        // $validator = Validator::make($request->all(), [
-        //     'nik' => 'required|string|unique:users,nik|max:16',
-        //     'password' => 'required',
-        //     'nama' => 'required|string|max:255',
-        //     'telepon' => 'required|numeric',
-        //     'alamat' => 'required|string',
-        // ]);
+        $validator = Validator::make($request->all(), [
+            'nik' => 'required|string|unique:users,nik|digits:16',
+            'password' => 'required',
+            'village_id' => 'required|string|unique:admin_desa,village_id',
+            'telepon' => 'required|numeric',
+        ]);
 
-        // if ($validator->fails()) {
-        //     return ResponseFormatter::error(null,$validator->errors(),422);
-        // };
+        if ($validator->fails()) {
+            return ResponseFormatter::error(null,$validator->errors(),422);
+        };
 
         try {
+            DB::beginTransaction();  // MULAI TRANSAKSI
+
             $dataUser = User::create([
                 'nik' => $request->nik,
                 'password' => bcrypt($request->password),
@@ -51,34 +53,40 @@ class KecamatanManageAkunDesaController extends Controller
             ]);
 
             $data = AdminDesa::create([
-                'user_id' => $dataUser->id,  // WAJIB ADA
+                'user_id' => $dataUser->id,
                 'village_id' => $request->village_id,
                 'telepon' => $request->telepon,
-                'tagihan' => $request->tagihan,
-                // 'sisa_tagihan' => $request->sisa_tagihan,
-                // 'diterima_kec' => $request->diterima_kec,
+                'tagihan' => 0,
+                'sisa_tagihan' => 0,
+                'diterima_kec' => 0,
             ]);
 
-
+            DB::commit();  // SIMPAN SEMUA JIKA BERHASIL
 
             return ResponseFormatter::success($data, "Data Admin Desa Berhasil Dibuat!");
         } catch (Exception $e) {
+
+            DB::rollBack();  // BATALKAN SEMUA JIKA ADA ERROR
+
             Log::error($e->getMessage());
             return ResponseFormatter::error($e->getMessage(), "Data gagal disimpan. Kesalahan Server", 500);
         }
     }
 
     public function updateAkunDesa(Request $request, $id) {
-        // $validator = Validator::make($request->all(), [
-        //     'nik' => 'string|max:16|unique:users,nik,'. $id,
-        //     'nama' => 'string|max:255',
-        //     'telepon' => 'numeric',
-        //     'alamat' => 'string',
-        // ]);
+        $adminDesa = AdminDesa::findOrFail($id);
+        $user = $adminDesa->user;
 
-        // if ($validator->fails()) {
-        //     return ResponseFormatter::error(null,$validator->errors(),422);
-        // };
+        $validator = Validator::make($request->all(), [
+            'nik' => 'required|string|digits:16|unique:users,nik,' . $user->id,
+            'password' => 'nullable',
+            'village_id' => 'required|string|unique:admin_desa,village_id,' . $adminDesa->id,
+            'telepon' => 'required|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            return ResponseFormatter::error(null,$validator->errors(),422);
+        };
 
         try {
             // 1. Ambil data AdminDesa berdasarkan ID
@@ -90,7 +98,6 @@ class KecamatanManageAkunDesaController extends Controller
             // 3. Update User
             $user->update([
                 'nik' => $request->nik,
-                // Update password hanya jika diisi
                 'password' => $request->password ? bcrypt($request->password) : $user->password,
                 'role' => 'admin_desa',
             ]);
@@ -100,25 +107,12 @@ class KecamatanManageAkunDesaController extends Controller
                 'village_id' => $request->village_id,
                 'telepon' => $request->telepon,
                 'tagihan' => $request->tagihan,
-                // 'sisa_tagihan' => $request->sisa_tagihan,
-                // 'diterima_kec' => $request->diterima_kec,
             ]);
 
             return ResponseFormatter::success($adminDesa, "Data Akun Desa Berhasil Diubah!");
         } catch (Exception $e) {
             Log::error($e->getMessage());
             return ResponseFormatter::error($e->getMessage(), "Data gagal disimpan. Kesalahan Server", 500);
-        }
-    }
-
-    public function hapusAkunDesa($id){
-        try{
-            $data = User::find($id);
-            $data->delete();
-            return ResponseFormatter::success("Data Pemunugut Berhasil Dihapus!");
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
-            return ResponseFormatter::error($e->getMessage(), "Data gagal dihapus. Kesalahan Server", 500);
         }
     }
 }

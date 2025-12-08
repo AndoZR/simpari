@@ -16,7 +16,7 @@
 @section('content')
 <h1 class="text-3xl text-black pb-6">Daftar Tagihan Pajak</h1>
 
-<div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative" role="alert">
+{{-- <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative" role="alert">
   <span class="block sm:inline">Ubah status "didesa" menjadi "selesai" untuk menyelesaikan setor pajak di Kecamatan.</span>
   <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
     <button onclick="this.parentElement.parentElement.remove()">
@@ -25,7 +25,7 @@
           d="M14.348 5.652a1 1 0 00-1.414-1.414L10 7.172 7.066 4.238a1 1 0 10-1.414 1.414L8.586 8.586l-2.934 2.934a1 1 0 101.414 1.414L10 10l2.934 2.934a1 1 0 001.414-1.414L11.414 8.586l2.934-2.934z"/></svg>
     </button>
   </span>
-</div>
+</div> --}}
 
 <div class="w-full mt-6">
     <p class="text-xl pb-3 flex items-center">
