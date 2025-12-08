@@ -221,127 +221,42 @@ class PemungutController extends Controller
     //     }
     // }
 
-    // public function bayarTagihan(Request $request)
-    // { // jadi kondisi titan, misal kemarin sinkronize ke API 50000/100000, lalu hari ini kriim data lagi 100000/100000. jadi intinya update bayar tagihan bukan penjumlahan. Maka kalo bayar tagihan yang terupdate == total tagihan == lunas
-    //     try {
-    //         // Validasi cuma riwayat_tagihan aja
-    //         $request->validate([
-    //             'riwayat_tagihan' => 'required',
-    //         ]);
-
-    //         // Decode JSON dari request
-    //         $riwayat = json_decode($request->riwayat_tagihan, true);
-
-    //         foreach($riwayat as $item){
-    //             $nop = $item["nop"];
-    //             $nominal = $item["bayar"];
-
-    //             // Cari tagihan berdasarkan NOP
-    //             $tagihan = Tagihan::where('nop', $nop)->first();
-    //             if (!$tagihan) {
-    //                 continue; // kalau tagihan nggak ada, skip loop ini
-    //             }
-                
-    //             $dataCicilan = Cicilan::where('tagihan_id', $tagihan->id)->first();
-
-    //             if ($nominal <= 0) {
-    //                 // Tidak ada pembayaran → jangan ubah status
-    //                 continue;
-    //             }
-
-    //             // Logika update status
-    //             var_dump($tagihan->status);
-    //             if ($tagihan->status == "lunas" || $tagihan->status == "didesa"){
-    //                 continue;
-    //             }
-
-    //             if ($nominal >= $tagihan->sisa_tagihan) { // langsung bayar lunas atau cicilan telah lunas
-    //                 if ($dataCicilan) {
-    //                     $dataCicilan->update([
-    //                         'total_cicilan_now' => $nominal
-    //                     ]);
-    //                 }
-
-    //                 $tagihan->update([
-    //                     'tanggal_lunas' => $request->tanggal_lunas ?? now(),
-    //                     'status' => 'lunas',
-    //                     'sisa_tagihan' => 0,
-    //                     'uang_dipemungut' => $tagihan->jumlah
-    //                 ]);
-    //             } else { // lagi cicilan atau belum lunas
-    //                 if ($dataCicilan) {
-    //                     $dataCicilan->update([
-    //                         'total_cicilan_now' => $nominal
-    //                     ]);
-    //                 } else {
-    //                     Cicilan::create([
-    //                         'tagihan_id' => $tagihan->id,
-    //                         'total_cicilan_now' => $nominal,
-    //                     ]);
-
-    //                 }
-    //                 // $tagihan->increment('uang_dipemungut', $nominal); // update kolom uang_dipemungut karena masyarakat udah bayar cicilan
-    //                 $tagihan->update([
-    //                     'status' => 'cicilan',
-    //                     'sisa_tagihan' => $tagihan->jumlah - $nominal,
-    //                     'uang_dipemungut' => $nominal
-    //                 ]);
-    //             }
-    //         }
-
-    //         return ResponseFormatter::success(null, "Berhasil bayar tagihan");
-            
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'message' => 'Terjadi kesalahan saat bayar tagihan',
-    //             'error' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
-
     public function bayarTagihan(Request $request)
-    {
+    { // jadi kondisi titan, misal kemarin sinkronize ke API 50000/100000, lalu hari ini kriim data lagi 100000/100000. jadi intinya update bayar tagihan bukan penjumlahan. Maka kalo bayar tagihan yang terupdate == total tagihan == lunas
         try {
+            // Validasi cuma riwayat_tagihan aja
             $request->validate([
                 'riwayat_tagihan' => 'required',
             ]);
 
+            // Decode JSON dari request
             $riwayat = json_decode($request->riwayat_tagihan, true);
-            $results = []; // <-- simpan hasil untuk dikirim ke requestcatcher
 
             foreach($riwayat as $item){
                 $nop = $item["nop"];
                 $nominal = $item["bayar"];
 
+                // Cari tagihan berdasarkan NOP
                 $tagihan = Tagihan::where('nop', $nop)->first();
                 if (!$tagihan) {
-                    $results[] = [
-                        'nop' => $nop,
-                        'status' => 'tagihan_tidak_ditemukan'
-                    ];
-                    continue;
+                    continue; // kalau tagihan nggak ada, skip loop ini
                 }
                 
                 $dataCicilan = Cicilan::where('tagihan_id', $tagihan->id)->first();
 
                 if ($nominal <= 0) {
-                    $results[] = [
-                        'nop' => $nop,
-                        'status' => 'nominal_kosong'
-                    ];
+                    // Tidak ada pembayaran → jangan ubah status
                     continue;
                 }
 
+                // Logika update status
                 if ($tagihan->status == "lunas" || $tagihan->status == "didesa"){
-                    $results[] = [
-                        'nop' => $nop,
-                        'status' => 'sudah_lunas_atau_didesa'
-                    ];
                     continue;
                 }
 
-                // LOGIKA LUNAS
-                if ($nominal >= $tagihan->sisa_tagihan) {
+                // 100000 #1 dari total 217620
+                // 110000 #2 
+                if ($nominal >= $tagihan->jumlah) { // langsung bayar lunas atau cicilan telah lunas
                     if ($dataCicilan) {
                         $dataCicilan->update([
                             'total_cicilan_now' => $nominal
@@ -350,19 +265,13 @@ class PemungutController extends Controller
 
                     $tagihan->update([
                         'tanggal_lunas' => $request->tanggal_lunas ?? now(),
-                        'status'         => 'lunas',
-                        'sisa_tagihan'   => 0,
-                        'uang_dipemungut'=> $tagihan->jumlah
-                    ]);
-
-                    $results[] = [
-                        'nop' => $nop,
                         'status' => 'lunas',
-                        'bayar' => $nominal
-                    ];
-
-                } else {
-                    // LOGIKA CICILAN
+                        'sisa_tagihan' => 0,
+                        'uang_dipemungut' => $tagihan->jumlah
+                    ]);
+                    
+                } else { // lagi cicilan atau belum lunas
+                    // aman
                     if ($dataCicilan) {
                         $dataCicilan->update([
                             'total_cicilan_now' => $nominal
@@ -372,45 +281,139 @@ class PemungutController extends Controller
                             'tagihan_id' => $tagihan->id,
                             'total_cicilan_now' => $nominal,
                         ]);
+
                     }
 
                     $tagihan->update([
-                        'status'         => 'cicilan',
-                        'sisa_tagihan'   => $tagihan->jumlah - $nominal,
-                        'uang_dipemungut'=> $nominal
-                    ]);
-
-                    $results[] = [
-                        'nop' => $nop,
                         'status' => 'cicilan',
-                        'bayar' => $nominal
-                    ];
+                        'sisa_tagihan' => $tagihan->jumlah - $nominal,
+                        'uang_dipemungut' => $nominal
+                    ]);
                 }
             }
-
-            // =======================
-            // 🔥 KIRIM KE RequestCatcher
-            // =======================
-            Http::post('https://simpari.requestcatcher.com/test', [
-                'results' => $results,
-                'raw_request' => $riwayat
-            ]);
 
             return ResponseFormatter::success(null, "Berhasil bayar tagihan");
             
         } catch (\Exception $e) {
-
-            // Kirim error ke requestcatcher juga
-            Http::post('https://simpari.requestcatcher.com/test', [
-                'error' => $e->getMessage()
-            ]);
-
             return response()->json([
                 'message' => 'Terjadi kesalahan saat bayar tagihan',
                 'error' => $e->getMessage()
             ], 500);
         }
     }
+
+    // public function bayarTagihan(Request $request)
+    // {
+    //     try {
+    //         $request->validate([
+    //             'riwayat_tagihan' => 'required',
+    //         ]);
+
+    //         $riwayat = json_decode($request->riwayat_tagihan, true);
+    //         $results = []; // <-- simpan hasil untuk dikirim ke requestcatcher
+
+    //         foreach($riwayat as $item){
+    //             $nop = $item["nop"];
+    //             $nominal = $item["bayar"];
+
+    //             $tagihan = Tagihan::where('nop', $nop)->first();
+    //             if (!$tagihan) {
+    //                 $results[] = [
+    //                     'nop' => $nop,
+    //                     'status' => 'tagihan_tidak_ditemukan'
+    //                 ];
+    //                 continue;
+    //             }
+                
+    //             $dataCicilan = Cicilan::where('tagihan_id', $tagihan->id)->first();
+
+    //             if ($nominal <= 0) {
+    //                 $results[] = [
+    //                     'nop' => $nop,
+    //                     'status' => 'nominal_kosong'
+    //                 ];
+    //                 continue;
+    //             }
+
+    //             if ($tagihan->status == "lunas" || $tagihan->status == "didesa"){
+    //                 $results[] = [
+    //                     'nop' => $nop,
+    //                     'status' => 'sudah_lunas_atau_didesa'
+    //                 ];
+    //                 continue;
+    //             }
+
+    //             // LOGIKA LUNAS
+    //             if ($nominal >= $tagihan->sisa_tagihan) {
+    //                 if ($dataCicilan) {
+    //                     $dataCicilan->update([
+    //                         'total_cicilan_now' => $nominal
+    //                     ]);
+    //                 }
+
+    //                 $tagihan->update([
+    //                     'tanggal_lunas' => $request->tanggal_lunas ?? now(),
+    //                     'status'         => 'lunas',
+    //                     'sisa_tagihan'   => 0,
+    //                     'uang_dipemungut'=> $tagihan->jumlah
+    //                 ]);
+
+    //                 $results[] = [
+    //                     'nop' => $nop,
+    //                     'status' => 'lunas',
+    //                     'bayar' => $nominal
+    //                 ];
+
+    //             } else {
+    //                 // LOGIKA CICILAN
+    //                 if ($dataCicilan) {
+    //                     $dataCicilan->update([
+    //                         'total_cicilan_now' => $nominal
+    //                     ]);
+    //                 } else {
+    //                     Cicilan::create([
+    //                         'tagihan_id' => $tagihan->id,
+    //                         'total_cicilan_now' => $nominal,
+    //                     ]);
+    //                 }
+
+    //                 $tagihan->update([
+    //                     'status'         => 'cicilan',
+    //                     'sisa_tagihan'   => $tagihan->jumlah - $nominal,
+    //                     'uang_dipemungut'=> $nominal
+    //                 ]);
+
+    //                 $results[] = [
+    //                     'nop' => $nop,
+    //                     'status' => 'cicilan',
+    //                     'bayar' => $nominal
+    //                 ];
+    //             }
+    //         }
+
+    //         // =======================
+    //         // 🔥 KIRIM KE RequestCatcher
+    //         // =======================
+    //         Http::post('https://simpari.requestcatcher.com/test', [
+    //             'results' => $results,
+    //             'raw_request' => $riwayat
+    //         ]);
+
+    //         return ResponseFormatter::success(null, "Berhasil bayar tagihan");
+            
+    //     } catch (\Exception $e) {
+
+    //         // Kirim error ke requestcatcher juga
+    //         Http::post('https://simpari.requestcatcher.com/test', [
+    //             'error' => $e->getMessage()
+    //         ]);
+
+    //         return response()->json([
+    //             'message' => 'Terjadi kesalahan saat bayar tagihan',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
 
     private function formatNop($nop) {
