@@ -239,13 +239,12 @@ class PemungutController extends Controller
                 // Cari tagihan berdasarkan NOP
                 $tagihan = Tagihan::where('nop', $nop)->first();
                 if (!$tagihan) {
-                    continue; // kalau tagihan nggak ada, skip loop ini
+                    continue;
                 }
                 
                 $dataCicilan = Cicilan::where('tagihan_id', $tagihan->id)->first();
 
                 if ($nominal <= 0) {
-                    // Tidak ada pembayaran → jangan ubah status
                     continue;
                 }
 
@@ -254,8 +253,6 @@ class PemungutController extends Controller
                     continue;
                 }
 
-                // 100000 #1 dari total 217620
-                // 110000 #2 
                 if ($nominal >= $tagihan->jumlah) { // langsung bayar lunas atau cicilan telah lunas
                     if ($dataCicilan) {
                         $dataCicilan->update([
@@ -269,7 +266,7 @@ class PemungutController extends Controller
                         'sisa_tagihan' => 0,
                         'uang_dipemungut' => $tagihan->jumlah
                     ]);
-                    
+
                 } else { // lagi cicilan atau belum lunas
                     // aman
                     if ($dataCicilan) {
