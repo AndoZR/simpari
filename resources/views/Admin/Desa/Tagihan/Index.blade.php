@@ -118,40 +118,37 @@ $(document).ready(function() {
                 targets: 1,
                 data: 'nop',
                 className: 'dt-center text-center align-middle',
-                render: function(data, type, row, meta) {
-                    return data;
-                }
             },
             {
                 targets: 2,
                 data: 'jumlah',
                 className: 'dt-center text-center align-middle',
-                render: function(data, type, row, meta) {
-                    return data;
+                render: function(data) {
+                    return parseInt(data).toLocaleString('id-ID');
                 }
             },
             {
                 targets: 3,
                 data: 'sisa_tagihan',
                 className: 'dt-center text-center align-middle',
-                render: function(data, type, row, meta) {
-                    return data;
+                render: function(data) {
+                    return parseInt(data).toLocaleString('id-ID');
                 }
             },
             {
                 targets: 4,
                 data: 'uang_dipemungut',
                 className: 'dt-center text-center align-middle',
-                render: function(data, type, row, meta) {
-                    return data;
+                render: function(data) {
+                    return parseInt(data).toLocaleString('id-ID');
                 }
             },
             {
                 targets: 5,
                 data: 'uang_didesa',
                 className: 'dt-center text-center align-middle',
-                render: function(data, type, row, meta) {
-                    return data;
+                render: function(data) {
+                    return parseInt(data).toLocaleString('id-ID');
                 }
             },
             {
@@ -222,11 +219,6 @@ $(document).ready(function() {
             {
                 targets: 8,
                 data: 'masyarakat.pemungut.nama',
-                visible: false, // kolom ada di dataset tapi disembunyikan
-            },
-            {
-                targets: 8,
-                data: 'masyarakat.pemungut.user.nik',
                 visible: false, // kolom ada di dataset tapi disembunyikan
             },
         ],

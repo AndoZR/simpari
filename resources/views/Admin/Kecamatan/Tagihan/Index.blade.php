@@ -90,16 +90,13 @@ $(document).ready(function() {
                 targets: 1,
                 data: 'desa.name',
                 className: 'dt-center text-center align-middle',
-                render: function(data, type, row, meta) {
-                    return data;
-                }
             },
             {
                 targets: 2,
                 data: 'tagihan',
                 className: 'dt-center text-center align-middle',
-                render: function(data, type, row, meta) {
-                    return data;
+                render: function(data) {
+                    return parseInt(data).toLocaleString('id-ID');
                 }
             },
             {
@@ -114,8 +111,8 @@ $(document).ready(function() {
                 targets: 4,
                 data: 'diterima_kec',
                 className: 'dt-center text-center align-middle',
-                render: function(data, type, row, meta) {
-                    return data;
+                render: function(data) {
+                    return parseInt(data).toLocaleString('id-ID');
                 }
             },
             {
