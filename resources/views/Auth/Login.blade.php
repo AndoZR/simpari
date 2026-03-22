@@ -38,12 +38,22 @@
                                     Login
                                 </span>
                             </button>
-                            <p class="mt-6 text-xs text-gray-600 text-center">
+                            <!-- <p class="mt-6 text-xs text-gray-600 text-center">
                                 <a href="{{ route("register") }}" class="border-b border-gray-500 border-dotted">
                                     Belum Memiliki Akun? Klik Di Sini
                                 </a>
-                            </p>
+                            </p> -->
                         </form>
+                        <div class="mt-8 pt-4 border-t border-gray-200 text-center">
+                            <div class="text-xs text-gray-500 space-x-4">
+                                <a href="{{ route('privacy.policy') }}" class="hover:text-indigo-600">
+                                    Kebijakan Privasi
+                                </a>
+                                <a href="{{ route('policy.view') }}" class="hover:text-indigo-600">
+                                    Ringkasan Policy
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

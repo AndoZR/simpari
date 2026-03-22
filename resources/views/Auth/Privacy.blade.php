@@ -13,7 +13,7 @@
             <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
                 <div class="text-center mb-8">
                     <h1 class="text-3xl font-bold text-gray-900 mb-2">Kebijakan Privasi</h1>
-                    <p class="text-gray-600">Sistem Informasi Manajemen Pajak Retribusi (SIMPARI)</p>
+                    <p class="text-gray-600">Sistem Manajemen Pemantauan & Penagihan Pajak Kecamatan Wonosari (SIMPARI)</p>
                     <p class="text-sm text-gray-500 mt-2">Terakhir diperbarui: {{ date('d F Y') }}</p>
                 </div>
 
@@ -23,7 +23,7 @@
                     <section>
                         <h2 class="text-xl font-semibold mb-4 text-indigo-600">1. Pendahuluan</h2>
                         <p class="mb-4">
-                            Selamat datang di Sistem Informasi Manajemen Pajak Retribusi (SIMPARI). Kami berkomitmen untuk melindungi privasi dan keamanan data pribadi Anda. 
+                            Selamat datang di Sistem Manajemen Pemantauan & Penagihan Pajak Kecamatan Wonosari (SIMPARI). Kami berkomitmen untuk melindungi privasi dan keamanan data pribadi Anda. 
                             Kebijakan privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, melindungi, dan membagikan informasi pribadi Anda saat menggunakan layanan kami.
                         </p>
                         <p>
@@ -135,9 +135,9 @@
                         <p class="mb-4">Jika Anda memiliki pertanyaan tentang kebijakan privasi ini, silakan hubungi kami:</p>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <ul class="space-y-2 text-sm">
-                                <li><strong>Email:</strong> privacy@simpari.go.id</li>
-                                <li><strong>Telepon:</strong> (021) 1234-5678</li>
-                                <li><strong>Alamat:</strong> Jl. Pemerintah No. 1, Jakarta Pusat</li>
+                                <li><strong>Email:</strong> support@simpari.go.id</li>
+                                <li><strong>Telepon:</strong> (0332) 422-382</li>
+                                <li><strong>Alamat:</strong> Jl. Raya Wonosari No.72, Krajan, Wonosari, Kec. Wonosari, Kabupaten Bondowoso, Jawa Timur 68282</li>
                             </ul>
                         </div>
                     </section>

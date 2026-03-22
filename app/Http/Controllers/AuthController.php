@@ -208,7 +208,7 @@ class AuthController extends Controller
      */
     public function index()
     {
-        return view('Privacy.Index');
+        return view('Auth.Privacy');
     }
  
     /**
