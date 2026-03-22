@@ -86,7 +86,7 @@ class AuthController extends Controller
             if (Auth::attempt($credentials)) {
                 $user = Auth::user();
                 $token = $user->createToken('auth_token')->plainTextToken;
-                
+
                 // Cek role pemungut
                 if ($user->role !== 'pemungut') {
                     Auth::logout();
@@ -131,26 +131,26 @@ class AuthController extends Controller
 
     // WEB SESSION
     // Register
-    public function registerWeb(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'nik' => 'required|string|unique:users,nik',
-            'password' => 'required|string|min:6',
-            'role' => 'required|string', // sesuaikan jika ada pilihan khusus
-        ]);
+    // public function registerWeb(Request $request)
+    // {
+    //     $request->validate([
+    //         'name' => 'required|string|max:255',
+    //         'nik' => 'required|string|unique:users,nik',
+    //         'password' => 'required|string|min:6',
+    //         'role' => 'required|string', // sesuaikan jika ada pilihan khusus
+    //     ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'nik' => $request->nik,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-        ]);
+    //     $user = User::create([
+    //         'name' => $request->name,
+    //         'nik' => $request->nik,
+    //         'password' => Hash::make($request->password),
+    //         'role' => $request->role,
+    //     ]);
 
-        Auth::login($user);
+    //     Auth::login($user);
 
-        return redirect('dashboard')->with(['message' => 'Register & login success', 'user' => $user]);
-    }
+    //     return redirect('dashboard')->with(['message' => 'Register & login success', 'user' => $user]);
+    // }
 
     // Login
     public function loginWeb(Request $request)
@@ -200,5 +200,22 @@ class AuthController extends Controller
     {
         Auth::logout();
         return view('Auth.Login');
+    }
+
+
+    /**
+     * Menampilkan halaman kebijakan privasi lengkap
+     */
+    public function index()
+    {
+        return view('Privacy.Index');
+    }
+ 
+    /**
+     * Menampilkan view ringkas untuk modal/popup
+     */
+    public function policy()
+    {
+        return view('Auth.Policy');
     }
 }

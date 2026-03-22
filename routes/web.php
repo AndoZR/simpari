@@ -11,6 +11,10 @@ Route::get('/', function () {
     return view('Auth.Login');
 })->name('default');
 
+// Route untuk kebijakan privasi
+Route::get('/privacy-policy', [AuthController::class, 'index'])->name('privacy.policy');
+Route::get('/policy-view', [AuthController::class, 'policy'])->name('policy.view');
+
 Route::view('/login', 'Auth.Login')->name('login');
 Route::view('/register', 'Auth.Register')->name('register');
 Route::post('/register', [AuthController::class, 'registerWeb'])->name('auth.register');

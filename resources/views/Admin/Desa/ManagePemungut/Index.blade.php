@@ -412,7 +412,7 @@
         $('#masyarakat').select2({
             placeholder: '-- Pilih Masyarakat --',
             allowClear: true,
-            width: '100%' // penting supaya lebar mengikuti container
+            width: '100%' 
         });
 
         let tablePlotting;
@@ -522,7 +522,7 @@
                 const payload = {
                     masyarakat_ids: Array.from(selectedMasyarakat),
                     pemungut_id: idPemungut,
-                    checked: 1, // <-- penting: sesuai kebutuhan server (1 = ter-plot)
+                    checked: 1,
                 };
 
                 $.ajax({
