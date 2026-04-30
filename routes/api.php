@@ -14,6 +14,7 @@ Route::post('get-tagihan', [PemungutController::class, 'getTagihanByNop']);
 
 Route::middleware('auth:sanctum','role:pemungut')->group(function () {
     Route::get('profile', [PemungutController::class, 'showTagihan']);
+    Route::get('profile/data', [PemungutController::class, 'getProfile']);
     Route::post('tagihan/bayar-tagihan', [PemungutController::class, 'bayarTagihan']);
 
     // Route::get('profile', [AuthController::class, 'profile']);

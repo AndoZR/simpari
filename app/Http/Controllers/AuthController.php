@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Exception;
 use App\Models\User;
+use App\Models\Pemungut;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -95,10 +96,25 @@ class AuthController extends Controller
                     ]);
                 }
 
+                // Ambil data pemungut untuk mendapatkan nama lengkap
+                $pemungut = Pemungut::where('user_id', $user->id)->first();
+                
+                // Tambahkan nama pemungut ke data user
+                $userData = [
+                    'id' => $user->id,
+                    'nik' => $user->nik,
+                    'role' => $user->role,
+                    'nama' => $pemungut ? $pemungut->nama : null,
+                    'telepon' => $pemungut ? $pemungut->telepon : null,
+                    'alamat' => $pemungut ? $pemungut->alamat : null,
+                    'created_at' => $user->created_at,
+                    'updated_at' => $user->updated_at
+                ];
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Login berhasil',
-                    'user' => $user,
+                    'user' => $userData,
                     'token' => $token,
                 ], 200);
             }

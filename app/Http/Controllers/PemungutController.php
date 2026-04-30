@@ -502,6 +502,44 @@ class PemungutController extends Controller
         }
     }
 
+    /**
+     * Get profile data for authenticated pemungut
+     * Mengambil data NIK dari tabel users, dan data nama, alamat, no hp dari tabel pemungut
+     */
+    public function getProfile()
+    {
+        try {
+            $user = Auth::user();
+            
+            // Ambil data pemungut dengan relasi user
+            $pemungut = Pemungut::where('user_id', $user->id)
+                ->with('user:id,nik,role')
+                ->first();
+            
+            if (!$pemungut) {
+                return ResponseFormatter::error(null, "Data pemungut tidak ditemukan", 404);
+            }
+            
+            // Format response data
+            $profileData = [
+                'id' => $pemungut->id,
+                'nik' => $pemungut->user->nik,
+                'nama' => $pemungut->nama,
+                'telepon' => $pemungut->telepon,
+                'alamat' => $pemungut->alamat,
+                'role' => $pemungut->user->role,
+                'user_id' => $pemungut->user_id,
+                'created_at' => $pemungut->created_at,
+                'updated_at' => $pemungut->updated_at
+            ];
+            
+            return ResponseFormatter::success($profileData, "Berhasil mendapatkan data profile pemungut");
+            
+        } catch (\Exception $e) {
+            return ResponseFormatter::error(null, "Terjadi kesalahan saat mengambil data profile: " . $e->getMessage(), 500);
+        }
+    }
+
     public function reqcact()
     {
 
